@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Banco de dados MySQL
+  db:
+    image: mysql:8.0
+    container_name: erp-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Mudar123
+      MYSQL_DATABASE: erp_database
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    ports:
+      - "2311:3306"
+    volumes:
+      - ./data:/var/lib/mysql
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Aplicação Spring Boot
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: Backend
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/erp_database?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - erp-network
+
+networks:
+  erp-network:
+    driver: bridge

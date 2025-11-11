@@ -1,0 +1,31 @@
+# Etapa 1: Build da aplicação
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+WORKDIR /app
+
+# Copia arquivos de configuração do Maven
+COPY pom.xml .
+COPY .mvn .mvn
+COPY mvnw .
+COPY mvnw.cmd .
+
+# Baixa dependências
+RUN mvn dependency:go-offline -B
+
+# Copia código fonte
+COPY src ./src
+
+# Build da aplicação
+RUN mvn clean package -DskipTests
+
+# Etapa 2: Imagem runtime
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# Copia o JAR construído
+COPY --from=build /app/target/*.jar app.jar
+
+# Expõe a porta da aplicação
+EXPOSE 8081
+
+# Comando para iniciar a aplicação
+ENTRYPOINT ["java", "-jar", "app.jar"]
