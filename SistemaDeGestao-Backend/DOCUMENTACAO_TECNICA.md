@@ -36,18 +36,9 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 │   ├── controller/                # Controladores de usuário
 │   │   └── UserController.java
 │   ├── model/                     # Entidades de usuário
-│   │   └── User.java
-│   ├── repository/                # Repositórios de usuário
-│   │   └── UserRepository.java
-│   └── service/                   # Serviços de usuário
-│       └── UserService.java
-├── auth/                          # Módulo de autenticação
 │   ├── controller/                # Controladores de autenticação
 │   │   └── AuthController.java
 │   ├── DTO/                       # DTOs de autenticação
-│   │   └── AuthRequest.java
-│   └── security/                  # Componentes de segurança
-│       ├── JwtAuthFilter.java
 │       └── JwtService.java
 ├── config/                        # Configurações da aplicação
 │   └── SecurityConfiguration.java
@@ -59,35 +50,18 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 - **Manutenibilidade**: Código mais organizado e fácil de manter
 - **Escalabilidade**: Facilita adição de novos módulos (produtos, vendas, estoque, receitas)
 - **Testabilidade**: Melhor isolamento para testes unitários
-- **Reutilização**: Componentes podem ser reutilizados entre módulos
 - **Clareza**: Estrutura mais intuitiva para novos desenvolvedores
-
 ### Arquitetura do Sistema
 
-#### Padrão MVC Implementado
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Controller    │    │     Service     │    │   Repository    │
-│   (REST API)    │◄──►│  (Business      │◄──►│   (Data Access) │
 │                 │    │   Logic)        │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Model/Entity  │    │   Security      │    │   Database      │
-│   (User.java)   │    │   (JWT Auth)    │    │   (MySQL)       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
-
-#### Organização Modular por Funcionalidade
-```
 ┌─────────────────────────────────────────────────────────────────┐
-│                Sistema de Gestão de Vendas e Estoque            │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
-│  │    USER     │  │    AUTH     │  │        CONFIG           │ │
-│  │   Module    │  │   Module    │  │       Module            │ │
-│  ├─────────────┤  ├─────────────┤  ├─────────────────────────┤ │
 │  │ Controller  │  │ Controller  │  │  SecurityConfiguration │ │
 │  │ Service     │  │ DTO         │  │                         │ │
 │  │ Repository  │  │ Security    │  │  GestaoApplication     │ │
@@ -96,26 +70,17 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 │                                                                  │
 │  ┌────────────────────────────────────────────────────────────┐ │
 │  │         Módulos Futuros (Em Desenvolvimento)               │ │
-│  │  • Produtos  • Vendas  • Estoque  • Receitas              │ │
 │  └────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
-```
-
-## Análise Detalhada das Classes
 
 ### 1. **User.java** - Entidade Principal
 **Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/user/model/`
 
 ```java
 @Entity
-@Table(name = "users")
 @Data
-public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(name = "username", nullable = false, unique = true)
     private String username;
     
     @Column(nullable = false)
