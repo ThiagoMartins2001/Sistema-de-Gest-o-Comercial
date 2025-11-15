@@ -6,7 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import CodingTechnology.SistemaDeGestao.user.model.User;
+import CodingTechnology.SistemaDeGestao.user.model.entities.User;
 import CodingTechnology.SistemaDeGestao.user.repository.UserRepository;
 
 @SpringBootApplication

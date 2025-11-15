@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import CodingTechnology.SistemaDeGestao.user.model.User;
+import CodingTechnology.SistemaDeGestao.user.model.entities.User;
 import CodingTechnology.SistemaDeGestao.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 

@@ -1,4 +1,4 @@
-package CodingTechnology.SistemaDeGestao.user.model;
+package CodingTechnology.SistemaDeGestao.user.model.entities;
 
 import java.util.Collection;
 import java.util.List;
