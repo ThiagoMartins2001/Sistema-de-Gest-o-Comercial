@@ -29,18 +29,30 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 │   ├── controller/                # Controladores de usuário
 │   │   └── UserController.java
 │   ├── model/                     # Entidades de usuário
-│   │   └── User.java
+│   │   └── entities/
+│   │       └── User.java
 │   ├── repository/                # Repositórios de usuário
 │   │   └── UserRepository.java
 │   └── service/                   # Serviços de usuário
 │       └── UserService.java
+├── product/                       # Módulo de produtos ✅
+│   ├── controller/                # Controladores de produtos
+│   │   └── ProductController.java
+│   ├── model/                     # Entidades de produtos
+│   │   └── entities/
+│   │       └── Product.java
+│   ├── repository/                # Repositórios de produtos
+│   │   └── ProductRepository.java
+│   └── service/                   # Serviços de produtos
+│       └── ProductService.java
 ├── auth/                          # Módulo de autenticação
 │   ├── controller/                # Controladores de autenticação
 │   │   └── AuthController.java
 │   ├── DTO/                       # DTOs de autenticação
 │   │   └── AuthRequest.java
-│   └── security/                  # Componentes de segurança
-│       ├── JwtAuthFilter.java
+│   ├── security/                  # Componentes de segurança
+│   │   └── JwtAuthFilter.java
+│   └── service/                   # Serviços de autenticação
 │       └── JwtService.java
 ├── config/                        # Configurações da aplicação
 │   └── SecurityConfiguration.java
@@ -62,12 +74,13 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 - Exclusão de usuários (apenas administradores)
 - Sistema de roles (ADMIN, RH, USER)
 
-### 3. **Gestão de Produtos e Estoque**
-- Cadastro de produtos/ingredientes
-- Listagem de produtos
-- Exclusão de produtos por ID
-- Exclusão geral e reset do contador de ID
-- Controle de estoque por quantidade, peso ou volume
+### 3. **Gestão de Produtos e Estoque** ✅
+- ✅ Cadastro de produtos/ingredientes
+- ✅ Listagem de produtos
+- ✅ Exclusão de produtos por ID
+- ✅ Exclusão geral e reset do contador de ID (apenas ADMIN)
+- ✅ Controle de estoque por quantidade, peso ou volume
+- ✅ Gerenciamento de preços de compra e venda
 
 ### 4. **Controle de Acesso**
 - Autorização baseada em roles
@@ -266,7 +279,7 @@ Remove um produto pelo ID.
 Authorization: Bearer <seu-token-jwt>
 ```
 
-### 8. **Exclusão Geral e Reset do ID**
+### 8. **Exclusão Geral e Reset do ID (Apenas ADMIN)**
 
 #### DELETE /api/products/delete/all-reset
 Remove todos os produtos e reinicia o contador de ID.
@@ -275,6 +288,8 @@ Remove todos os produtos e reinicia o contador de ID.
 ```
 Authorization: Bearer <seu-token-jwt>
 ```
+
+**Acesso**: Apenas usuários com role ADMIN
 
 ## Testando a API com Postman
 
@@ -434,21 +449,27 @@ mvn spring-boot:run
 ### ✅ Implementado
 - **Sistema de Autenticação JWT**: Login seguro com tokens
 - **Gerenciamento de Usuários**: Criação, listagem e exclusão
+- **Gerenciamento de Produtos**: Cadastro, listagem e exclusão de produtos/ingredientes
+- **Controle de Estoque**: Gestão de quantidades iniciais e atuais
+- **Controle de Preços**: Gerenciamento de preços de compra e venda
 - **Controle de Acesso**: Sistema de roles (ADMIN, RH, USER)
 - **Segurança**: Criptografia BCrypt para senhas
+- **Tipos de Controle**: Suporte para QUANTIDADE, PESO e VOLUME
 
 ## Próximas Implementações
 
-### v2.1 (Planejado) - Gestão de Produtos e Estoque
-- [ ] Cadastro de produtos
-- [ ] Controle de estoque
+### v2.1 (Planejado) - Funcionalidades Avançadas de Estoque e Vendas
+- [ ] Atualização de produtos (PUT/PATCH)
+- [ ] Busca e filtros de produtos
 - [ ] Sistema de vendas
 - [ ] Cadastro de receitas (composição de produtos)
 - [ ] Cálculo automático de uso de materiais
 - [ ] Controle de entrada e saída de produtos
+- [ ] Histórico de movimentações de estoque
 - [ ] Relatórios de estoque
 - [ ] Atualização de usuários
 - [ ] Logs de auditoria
+- [ ] Validações avançadas de produtos
 
 ### v2.2 (Futuro) - Análises e Relatórios
 - [ ] Dashboard de vendas

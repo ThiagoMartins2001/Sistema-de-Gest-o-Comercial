@@ -20,7 +20,7 @@ Este é um **Sistema de Gestão de Vendas e Estoque** em desenvolvimento, focado
 - Cadastro de receitas (composição de produtos)
 - Cálculo automático de uso de materiais
 
-**Status Atual**: Sistema base com autenticação e gerenciamento de usuários implementado. Funcionalidades de produtos, vendas e estoque em desenvolvimento.
+**Status Atual**: Sistema base com autenticação JWT, gerenciamento de usuários e gestão de produtos totalmente implementados e funcionais. Funcionalidades de vendas e estoque avançado em desenvolvimento.
 
 ## Endpoints Disponíveis
 
@@ -344,12 +344,13 @@ fetch('http://localhost:8081/api/users/delete/Usuarioteste', {
 
 | Código | Descrição | Quando Ocorre |
 |--------|-----------|---------------|
-| 200 | OK | Requisição bem-sucedida |
+| 200 | OK | Requisição bem-sucedida (listagens, criação de produtos) |
 | 201 | Created | Usuário criado com sucesso |
-| 400 | Bad Request | Dados inválidos na requisição ou credenciais inválidas |
+| 204 | No Content | Operação bem-sucedida sem conteúdo (exclusões) |
+| 400 | Bad Request | Dados inválidos na requisição, credenciais inválidas ou campos obrigatórios ausentes |
 | 401 | Unauthorized | Autenticação necessária ou falhou |
-| 403 | Forbidden | Acesso negado (endpoints /create e /delete apenas para ADMIN) |
-| 404 | Not Found | Endpoint não encontrado ou usuário não encontrado |
+| 403 | Forbidden | Acesso negado (endpoints restritos apenas para ADMIN) |
+| 404 | Not Found | Endpoint não encontrado, usuário não encontrado ou produto não encontrado |
 | 409 | Conflict | Username já existe |
 | 500 | Internal Server Error | Erro interno do servidor |
 
@@ -392,7 +393,267 @@ fetch('/api/users/listAll', {
 
 ---
 
-## Exemplos de Integração
+### 5. Cadastro de Produto
+
+#### POST /api/products/create
+Cadastra um novo produto/ingrediente no sistema.
+
+**URL**: `http://localhost:8081/api/products/create`
+
+**Método**: `POST`
+
+**Autenticação**: JWT Bearer Token obrigatório
+
+**Headers**:
+```
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Corpo da Requisição**:
+```json
+{
+  "nome": "Chocolate em pó",
+  "tipoControle": "PESO",
+  "unidadeMedida": "grama",
+  "quantidadeInicial": 1000.0,
+  "quantidadeAtual": 1000.0,
+  "precoCompra": 20.0,
+  "precoVenda": 0.0
+}
+```
+
+**Parâmetros**:
+- `nome` (string, obrigatório): Nome do produto/ingrediente
+- `tipoControle` (string, obrigatório): Tipo de controle (QUANTIDADE, PESO, VOLUME)
+- `unidadeMedida` (string, obrigatório): Unidade de medida (unidade, grama, litro, etc.)
+- `quantidadeInicial` (double, opcional): Quantidade inicial comprada
+- `quantidadeAtual` (double, opcional): Quantidade atual no estoque
+- `precoCompra` (double, opcional): Preço de compra do produto
+- `precoVenda` (double, opcional): Preço de venda do produto
+
+**Respostas**:
+
+**Sucesso (200 OK)**:
+```json
+{
+  "id": 1,
+  "nome": "Chocolate em pó",
+  "tipoControle": "PESO",
+  "unidadeMedida": "grama",
+  "quantidadeInicial": 1000.0,
+  "quantidadeAtual": 1000.0,
+  "precoCompra": 20.0,
+  "precoVenda": 0.0
+}
+```
+
+**Erro - Campos obrigatórios ausentes (400 Bad Request)**:
+```
+O nome do produto é obrigatório.
+```
+ou
+```
+O tipo de controle é obrigatório.
+```
+ou
+```
+A unidade de medida é obrigatória.
+```
+
+**Erro - Não autorizado (401 Unauthorized)**:
+```json
+{
+  "timestamp": "2024-01-01T12:00:00.000+00:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Full authentication is required to access this resource"
+}
+```
+
+**Exemplo de Uso (cURL)**:
+```bash
+curl -X POST http://localhost:8081/api/products/create \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -d '{
+    "nome": "Chocolate em pó",
+    "tipoControle": "PESO",
+    "unidadeMedida": "grama",
+    "quantidadeInicial": 1000.0,
+    "quantidadeAtual": 1000.0,
+    "precoCompra": 20.0,
+    "precoVenda": 0.0
+  }'
+```
+
+---
+
+### 6. Listagem de Produtos
+
+#### GET /api/products/list
+Lista todos os produtos cadastrados no sistema.
+
+**URL**: `http://localhost:8081/api/products/list`
+
+**Método**: `GET`
+
+**Autenticação**: JWT Bearer Token obrigatório
+
+**Headers**:
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Respostas**:
+
+**Sucesso (200 OK)**:
+```json
+[
+  {
+    "id": 1,
+    "nome": "Chocolate em pó",
+    "tipoControle": "PESO",
+    "unidadeMedida": "grama",
+    "quantidadeInicial": 1000.0,
+    "quantidadeAtual": 1000.0,
+    "precoCompra": 20.0,
+    "precoVenda": 0.0
+  },
+  {
+    "id": 2,
+    "nome": "Açúcar",
+    "tipoControle": "QUANTIDADE",
+    "unidadeMedida": "kg",
+    "quantidadeInicial": 5.0,
+    "quantidadeAtual": 4.5,
+    "precoCompra": 15.0,
+    "precoVenda": 0.0
+  }
+]
+```
+
+**Erro - Não autorizado (401 Unauthorized)**:
+```json
+{
+  "timestamp": "2024-01-01T12:00:00.000+00:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Full authentication is required to access this resource"
+}
+```
+
+**Exemplo de Uso (cURL)**:
+```bash
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  http://localhost:8081/api/products/list
+```
+
+---
+
+### 7. Exclusão de Produto por ID
+
+#### DELETE /api/products/delete/{id}
+Remove um produto do sistema pelo ID.
+
+**URL**: `http://localhost:8081/api/products/delete/{id}`
+
+**Método**: `DELETE`
+
+**Autenticação**: JWT Bearer Token obrigatório
+
+**Headers**:
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Parâmetros**:
+- `id` (long, obrigatório): ID do produto a ser removido (path variable)
+
+**Respostas**:
+
+**Sucesso (204 No Content)**:
+```
+(Resposta vazia)
+```
+
+**Erro - Produto não encontrado (404 Not Found)**:
+```
+(Resposta vazia)
+```
+
+**Erro - Não autorizado (401 Unauthorized)**:
+```json
+{
+  "timestamp": "2024-01-01T12:00:00.000+00:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Full authentication is required to access this resource"
+}
+```
+
+**Exemplo de Uso (cURL)**:
+```bash
+curl -X DELETE \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  http://localhost:8081/api/products/delete/1
+```
+
+---
+
+### 8. Exclusão Geral e Reset do ID (Admin)
+
+#### DELETE /api/products/delete/all-reset
+Remove todos os produtos do sistema e reinicia o contador de ID (apenas para administradores).
+
+**URL**: `http://localhost:8081/api/products/delete/all-reset`
+
+**Método**: `DELETE`
+
+**Autenticação**: Obrigatória (apenas ADMIN)
+
+**Headers**:
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Respostas**:
+
+**Sucesso (204 No Content)**:
+```
+(Resposta vazia)
+```
+
+**Erro - Acesso negado (403 Forbidden)**:
+```json
+{
+  "timestamp": "2024-01-01T12:00:00.000+00:00",
+  "status": 403,
+  "error": "Forbidden",
+  "message": "Access Denied"
+}
+```
+
+**Erro - Não autorizado (401 Unauthorized)**:
+```json
+{
+  "timestamp": "2024-01-01T12:00:00.000+00:00",
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Full authentication is required to access this resource"
+}
+```
+
+**Exemplo de Uso (cURL)**:
+```bash
+curl -X DELETE \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  http://localhost:8081/api/products/delete/all-reset
+```
+
+---
+
+## Códigos de Status HTTP
 
 ### Python (requests)
 ```python
@@ -842,8 +1103,14 @@ if ($client->login('UserAdmin', 'Master@123')) {
   - Pode criar usuários
   - Pode excluir usuários
   - Pode listar usuários
+  - Pode criar, listar e excluir produtos
+  - Pode excluir todos os produtos e resetar IDs
 - **RH**: Acesso limitado (futuras implementações)
+  - Pode criar, listar e excluir produtos (por ID)
+  - Pode listar usuários
 - **USER**: Acesso básico (futuras implementações)
+  - Pode criar, listar e excluir produtos (por ID)
+  - Pode listar usuários
 
 ### Fluxo de Autenticação
 1. **Login**: Usuário faz login com username/password
@@ -855,21 +1122,23 @@ if ($client->login('UserAdmin', 'Master@123')) {
 
 ## Limitações Atuais
 
-1. **Autenticação**: JWT implementado e testado
-2. **Validação**: Validação básica de username único
-3. **Roles**: ADMIN, RH, USER
-4. **Endpoints**: Operações básicas de usuário (CRUD parcial)
-5. **Segurança**: Sem rate limiting ou validação avançada
-6. **Autorização**: Endpoints /create e /delete restritos apenas para ADMIN
-7. **Registro**: Sem endpoint público de registro de usuários
-8. **Refresh Tokens**: Não implementado
-9. **Revogação**: Sem sistema de revogação de tokens
+1. **Autenticação**: JWT implementado e testado ✅
+2. **Validação**: Validação básica de username único e campos de produtos ✅
+3. **Roles**: ADMIN, RH, USER ✅
+4. **Endpoints**: Operações básicas de usuário (CRUD parcial) ✅
+5. **Endpoints**: Operações básicas de produtos (CRUD parcial) ✅
+6. **Segurança**: Sem rate limiting ou validação avançada
+7. **Autorização**: Endpoints de usuários e produtos restritos por role ✅
+8. **Registro**: Sem endpoint público de registro de usuários
+9. **Refresh Tokens**: Não implementado
+10. **Revogação**: Sem sistema de revogação de tokens
+11. **Produtos**: Sem endpoint de atualização (PUT/PATCH) ainda
 
 ---
 
 ## Próximas Versões
 
-### v2.1 (Planejado) - Gestão de Produtos e Estoque
+### v2.1 (Planejado) - Funcionalidades Avançadas de Estoque e Vendas
 - [ ] Testes completos do sistema JWT
 - [ ] Refresh tokens
 - [ ] Validação de entrada com Bean Validation
@@ -877,11 +1146,13 @@ if ($client->login('UserAdmin', 'Master@123')) {
 - [ ] Logs de auditoria
 - [ ] Endpoint para atualização de usuários
 - [ ] Endpoint público de registro de usuários
-- [ ] **Cadastro de produtos**
-- [ ] **Controle de estoque**
+- [ ] **Endpoint para atualização de produtos (PUT/PATCH)**
+- [ ] **Busca e filtros de produtos**
+- [ ] **Controle de estoque avançado**
 - [ ] **Sistema de vendas**
 - [ ] **Cadastro de receitas**
 - [ ] **Cálculo de uso de materiais**
+- [ ] **Histórico de movimentações de estoque**
 
 ### v2.2 (Planejado) - Análises e Relatórios
 - [ ] Dashboard de vendas

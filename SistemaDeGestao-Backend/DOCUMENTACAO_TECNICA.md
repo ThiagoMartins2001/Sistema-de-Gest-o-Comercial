@@ -12,7 +12,7 @@ Este é um **Sistema de Gestão de Vendas e Estoque** desenvolvido para:
 - **Receitas**: Cadastro de composições e fórmulas (em desenvolvimento)
 - **Cálculo de Uso**: Análise automática de consumo de materiais (em desenvolvimento)
 
-**Status Atual**: Sistema base com autenticação JWT e gerenciamento de usuários totalmente implementado e funcional.
+**Status Atual**: Sistema base com autenticação JWT, gerenciamento de usuários e gestão de produtos totalmente implementados e funcionais.
 
 ## Especificações Técnicas
 
@@ -36,9 +36,30 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 │   ├── controller/                # Controladores de usuário
 │   │   └── UserController.java
 │   ├── model/                     # Entidades de usuário
+│   │   └── entities/
+│   │       └── User.java
+│   ├── repository/                # Repositórios de usuário
+│   │   └── UserRepository.java
+│   └── service/                   # Serviços de usuário
+│       └── UserService.java
+├── product/                       # Módulo de produtos ✅
+│   ├── controller/                # Controladores de produtos
+│   │   └── ProductController.java
+│   ├── model/                     # Entidades de produtos
+│   │   └── entities/
+│   │       └── Product.java
+│   ├── repository/                # Repositórios de produtos
+│   │   └── ProductRepository.java
+│   └── service/                   # Serviços de produtos
+│       └── ProductService.java
+├── auth/                          # Módulo de autenticação
 │   ├── controller/                # Controladores de autenticação
 │   │   └── AuthController.java
 │   ├── DTO/                       # DTOs de autenticação
+│   │   └── AuthRequest.java
+│   ├── security/                  # Componentes de segurança
+│   │   └── JwtAuthFilter.java
+│   └── service/                   # Serviços de autenticação
 │       └── JwtService.java
 ├── config/                        # Configurações da aplicação
 │   └── SecurityConfiguration.java
@@ -519,6 +540,188 @@ public class CustomUserDetailsService implements UserDetailsService {
 - **Tratamento de Erros**: UsernameNotFoundException
 - **Optional**: Uso de Optional para tratamento seguro
 
+### 12. **Product.java** - Entidade de Produtos
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/product/model/entities/`
+
+```java
+@Entity
+@Table(name = "products")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String nome;
+    private String tipoControle;  // QUANTIDADE, PESO, VOLUME
+    private String unidadeMedida; // unidade, grama, litro, etc.
+    private Double quantidadeInicial;
+    private Double quantidadeAtual;
+    private Double precoCompra;
+    private Double precoVenda;
+}
+```
+
+**Características Técnicas:**
+- **Mapeamento JPA**: Tabela `products` no banco de dados
+- **Chave Primária**: Auto-incremento (IDENTITY)
+- **Lombok**: Anotações `@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@Builder`
+- **Tipos de Controle**: Suporta QUANTIDADE, PESO e VOLUME
+- **Gestão de Estoque**: Quantidades iniciais e atuais para controle de estoque
+- **Preços**: Campos para preço de compra e venda
+
+### 13. **ProductRepository.java** - Repositório de Produtos
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/product/repository/`
+
+```java
+@Repository
+public interface ProductRepository extends JpaRepository<Product, Long> {
+}
+```
+
+**Métodos Disponíveis:**
+- **Herdados do JpaRepository**:
+  - `save(Product entity)`: Salva ou atualiza produto
+  - `findById(Long id)`: Busca por ID
+  - `findAll()`: Lista todos os produtos
+  - `deleteById(Long id)`: Remove produto por ID
+  - `deleteAll()`: Remove todos os produtos
+  - `count()`: Conta total de produtos
+
+### 14. **ProductService.java** - Serviço de Produtos
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/product/service/`
+
+```java
+@Service
+@RequiredArgsConstructor
+public class ProductService {
+    private final ProductRepository productRepository;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
+    
+    public Product saveProduct(Product product) {
+        // Validações de campos obrigatórios
+        if (product.getNome() == null || product.getNome().isBlank()) {
+            throw new IllegalArgumentException("O nome do produto é obrigatório.");
+        }
+        if (product.getTipoControle() == null || product.getTipoControle().isBlank()) {
+            throw new IllegalArgumentException("O tipo de controle é obrigatório.");
+        }
+        if (product.getUnidadeMedida() == null || product.getUnidadeMedida().isBlank()) {
+            throw new IllegalArgumentException("A unidade de medida é obrigatória.");
+        }
+        return productRepository.save(product);
+    }
+    
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
+    
+    public void deleteProductById(Long id) {
+        productRepository.deleteById(id);
+    }
+    
+    public void deleteAllProductsAndResetId() {
+        productRepository.deleteAll();
+        entityManager.createNativeQuery("ALTER TABLE products AUTO_INCREMENT = 1").executeUpdate();
+    }
+}
+```
+
+**Funcionalidades:**
+- **Validação**: Verifica campos obrigatórios (nome, tipoControle, unidadeMedida)
+- **Persistência**: Salva produtos no banco de dados
+- **Listagem**: Retorna todos os produtos cadastrados
+- **Exclusão**: Remove produtos por ID ou todos os produtos
+- **Reset de ID**: Reinicia o contador AUTO_INCREMENT após exclusão geral
+
+### 15. **ProductController.java** - API REST de Produtos
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/product/controller/`
+
+```java
+@RestController
+@RequestMapping("/api/products")
+@RequiredArgsConstructor
+public class ProductController {
+    private final ProductService productService;
+    
+    @PostMapping("/create")
+    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+        Product savedProduct = productService.saveProduct(product);
+        return ResponseEntity.ok(savedProduct);
+    }
+    
+    @GetMapping("/list")
+    public ResponseEntity<List<Product>> listProducts() {
+        List<Product> products = productService.getAllProducts();
+        return ResponseEntity.ok(products);
+    }
+    
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProductById(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/delete/all-reset")
+    public ResponseEntity<Void> deleteAllProductsAndResetId() {
+        productService.deleteAllProductsAndResetId();
+        return ResponseEntity.noContent().build();
+    }
+}
+```
+
+**Endpoints da API:**
+
+#### POST /api/products/create
+- **Função**: Cadastra novo produto/ingrediente
+- **Autenticação**: JWT Bearer Token obrigatório
+- **Content-Type**: application/json
+- **Corpo**:
+```json
+{
+  "nome": "Chocolate em pó",
+  "tipoControle": "PESO",
+  "unidadeMedida": "grama",
+  "quantidadeInicial": 1000.0,
+  "quantidadeAtual": 1000.0,
+  "precoCompra": 20.0,
+  "precoVenda": 0.0
+}
+```
+- **Respostas**:
+  - `200 OK`: Produto criado com sucesso (retorna o produto)
+  - `400 Bad Request`: Campos obrigatórios ausentes ou inválidos
+  - `401 Unauthorized`: Autenticação necessária
+
+#### GET /api/products/list
+- **Função**: Lista todos os produtos cadastrados
+- **Autenticação**: JWT Bearer Token obrigatório
+- **Resposta**: `200 OK` - Lista de produtos em JSON
+
+#### DELETE /api/products/delete/{id}
+- **Função**: Remove produto pelo ID
+- **Autenticação**: JWT Bearer Token obrigatório
+- **Parâmetros**: `id` (path variable)
+- **Respostas**:
+  - `204 No Content`: Produto removido com sucesso
+  - `404 Not Found`: Produto não encontrado
+  - `401 Unauthorized`: Autenticação necessária
+
+#### DELETE /api/products/delete/all-reset
+- **Função**: Remove todos os produtos e reinicia o contador de ID (apenas ADMIN)
+- **Autorização**: `@PreAuthorize("hasRole('ADMIN')")`
+- **Autenticação**: JWT Bearer Token obrigatório (apenas ADMIN)
+- **Respostas**:
+  - `204 No Content`: Todos os produtos removidos e ID resetado
+  - `403 Forbidden`: Acesso negado (não é ADMIN)
+  - `401 Unauthorized`: Autenticação necessária
+
 ## Sistema de Autorização
 
 ### Roles e Permissões
@@ -537,6 +740,10 @@ O sistema implementa um sistema de autorização baseado em roles (RBAC - Role-B
 | POST /api/users/create | ✅ | ❌ | ❌ | ❌ |
 | GET /api/users/listAll | ✅ | ✅ | ✅ | ❌ |
 | DELETE /api/users/delete/{username} | ✅ | ❌ | ❌ | ❌ |
+| POST /api/products/create | ✅ | ✅ | ✅ | ❌ |
+| GET /api/products/list | ✅ | ✅ | ✅ | ❌ |
+| DELETE /api/products/delete/{id} | ✅ | ✅ | ✅ | ❌ |
+| DELETE /api/products/delete/all-reset | ✅ | ❌ | ❌ | ❌ |
 
 ### Anotação @PreAuthorize
 ```java
@@ -674,6 +881,24 @@ CREATE TABLE users (
 **Índices:**
 - **PRIMARY KEY**: `id`
 - **UNIQUE**: `username`
+
+### Tabela `products`
+```sql
+CREATE TABLE products (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255),
+    tipo_controle VARCHAR(255),
+    unidade_medida VARCHAR(255),
+    quantidade_inicial DOUBLE,
+    quantidade_atual DOUBLE,
+    preco_compra DOUBLE,
+    preco_venda DOUBLE
+);
+```
+
+**Índices:**
+- **PRIMARY KEY**: `id`
+- **Campos**: Nome, tipo de controle, unidade de medida, quantidades e preços
 
 ### Dados Iniciais
 ```sql
