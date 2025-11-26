@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/products")
@@ -44,6 +45,20 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/all-reset")
     public ResponseEntity<Void> deleteAllProductsAndResetId() {
+        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProductController.class);
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+
+        if (auth != null) {
+            log.info("Delete all-reset called by user: {} with authorities: {}",
+                    auth.getName(),
+                    auth.getAuthorities().stream()
+                            .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                            .collect(Collectors.toList()));
+        } else {
+            log.warn("Delete all-reset called but no authentication found!");
+        }
+
         productService.deleteAllProductsAndResetId();
         return ResponseEntity.noContent().build();
     }

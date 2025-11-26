@@ -2,8 +2,6 @@ package CodingTechnology.SistemaDeGestao.product.service;
 
 import CodingTechnology.SistemaDeGestao.product.model.entities.Product;
 import CodingTechnology.SistemaDeGestao.product.repository.ProductRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +13,6 @@ public class ProductService {
 
     // Injeta o repositório para acessar o banco de dados
     private final ProductRepository productRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     /**
      * Salva um novo produto no banco de dados
@@ -46,6 +41,5 @@ public class ProductService {
 
     public void deleteAllProductsAndResetId() {
         productRepository.deleteAll();
-        entityManager.createNativeQuery("ALTER TABLE products AUTO_INCREMENT = 1").executeUpdate();
     }
 }

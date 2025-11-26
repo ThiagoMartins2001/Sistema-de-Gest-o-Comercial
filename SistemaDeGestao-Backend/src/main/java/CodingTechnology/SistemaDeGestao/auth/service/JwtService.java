@@ -116,5 +116,4 @@ public class JwtService {
         }
         return data;
     }
-
 }
