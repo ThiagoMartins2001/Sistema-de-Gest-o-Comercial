@@ -23,15 +23,17 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    // Lista todos os usuários cadastrados
     @GetMapping("/listAll")
     public ResponseEntity<List<User>> listAllUsers() {
         List<User> users = userService.findAllUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
+    // Cria um novo usuário (apenas ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
-    public ResponseEntity<String> createUser(@RequestBody User user) { 
+    public ResponseEntity<String> createUser(@RequestBody User user) {
         if (userService.findByUsername(user.getUsername()).isPresent()) {
             return new ResponseEntity<>("Name already in use:", HttpStatus.CONFLICT);
         }
@@ -39,6 +41,7 @@ public class UserController {
         return new ResponseEntity<>("User created successfully:", HttpStatus.CREATED);
     }
 
+    // Exclui um usuário por username (apenas ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {

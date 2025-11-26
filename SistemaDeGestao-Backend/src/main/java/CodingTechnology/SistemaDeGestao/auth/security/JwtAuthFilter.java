@@ -34,6 +34,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
 
+    // Processa requisição e valida token JWT
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -48,7 +49,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.debug("No Bearer token found in request");
-            // Limpa o SecurityContext se não houver token
             SecurityContextHolder.clearContext();
             filterChain.doFilter(request, response);
             return;
@@ -83,7 +83,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 log.debug("Is token valid for user {}: {}", userUsername, valid);
 
                 if (valid) {
-                    // Usa as authorities do userDetails que já têm o prefixo ROLE_ correto
                     Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
                     log.info("Setting authentication for user: {} with authorities: {}", userUsername,
                             authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
@@ -95,7 +94,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     log.info("Authentication successfully set in SecurityContext for user: {}", userUsername);
                 } else {
-                    // Token inválido - limpa o contexto de segurança
                     log.warn("Token invalid for user: {}", userUsername);
                     SecurityContextHolder.clearContext();
                 }
@@ -112,6 +110,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    // Define que o filtro não deve processar requisições de autenticação
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();

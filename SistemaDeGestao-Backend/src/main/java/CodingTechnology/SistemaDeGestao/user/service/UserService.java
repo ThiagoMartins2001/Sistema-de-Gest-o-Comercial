@@ -20,22 +20,25 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // Salva um novo usuário com senha criptografada
     public User saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
+    // Busca um usuário por username
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
+    // Lista todos os usuários cadastrados
     public List<User> findAllUsers() {
         return userRepository.findAll();
     }
 
+    // Exclui um usuário por username
     @Transactional
     public void deleteByUsername(String username) {
         userRepository.deleteByUsername(username);
     }
-
 }

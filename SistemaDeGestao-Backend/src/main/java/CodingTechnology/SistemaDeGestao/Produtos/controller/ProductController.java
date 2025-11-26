@@ -1,11 +1,12 @@
-package CodingTechnology.SistemaDeGestao.product.controller;
+package CodingTechnology.SistemaDeGestao.Produtos.controller;
 
-import CodingTechnology.SistemaDeGestao.product.model.entities.Product;
-import CodingTechnology.SistemaDeGestao.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import CodingTechnology.SistemaDeGestao.Produtos.model.entities.Product;
+import CodingTechnology.SistemaDeGestao.Produtos.service.ProductService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,33 +16,30 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductController {
 
-    // Injeta o serviço de produto
     private final ProductService productService;
 
-    /**
-     * Endpoint para cadastrar um novo produto
-     */
+    // Cadastra um novo produto
     @PostMapping("/create")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         Product savedProduct = productService.saveProduct(product);
         return ResponseEntity.ok(savedProduct);
     }
 
-    /**
-     * Endpoint para listar todos os produtos
-     */
+    // Lista todos os produtos cadastrados
     @GetMapping("/list")
     public ResponseEntity<List<Product>> listProducts() {
         List<Product> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
 
+    // Exclui um produto por ID
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProductById(id);
         return ResponseEntity.noContent().build();
     }
 
+    // Exclui todos os produtos (apenas ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/all-reset")
     public ResponseEntity<Void> deleteAllProductsAndResetId() {
