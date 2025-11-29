@@ -1,12 +1,15 @@
 # Sistema de Gestão de Vendas e Estoque
 
 ## Autor
+
 **ThiagoMartins2001**
 
 ## Visão Geral
-Sistema de Gestão desenvolvido em Spring Boot com arquitetura MVC, focado em vendas e controle de estoque. Atualmente oferece funcionalidades de gerenciamento de usuários com autenticação JWT e autorização baseada em roles. O sistema implementa um controle de acesso robusto com diferentes níveis de permissão e está em desenvolvimento para incluir gestão de produtos, receitas, cálculo de uso de materiais e controle completo de estoque.
+
+Sistema de Gestão desenvolvido em Spring Boot com arquitetura MVC modular, focado em vendas e controle de estoque. O sistema oferece funcionalidades completas de gerenciamento de usuários com autenticação JWT, gestão de produtos/ingredientes, cadastro de receitas, registro de produções e controle automático de estoque baseado em receitas.
 
 ## Tecnologias Utilizadas
+
 - **Java 21**
 - **Spring Boot 3.3.0**
 - **Spring Security**
@@ -17,14 +20,25 @@ Sistema de Gestão desenvolvido em Spring Boot com arquitetura MVC, focado em ve
 - **Lombok**
 - **JWT (JSON Web Tokens)**
 - **BCrypt** (Criptografia de senhas)
+- **Jackson** (Serialização JSON)
 
 ## Estrutura do Projeto
 
 ### Organização Modular
-O projeto foi organizado seguindo princípios de separação de responsabilidades:
+
+O projeto foi organizado seguindo princípios de separação de responsabilidades e arquitetura modular:
 
 ```
 src/main/java/CodingTechnology/SistemaDeGestao/
+├── auth/                          # Módulo de autenticação
+│   ├── controller/                # Controladores de autenticação
+│   │   └── AuthController.java
+│   ├── DTO/                       # DTOs de autenticação
+│   │   └── AuthRequest.java
+│   ├── security/                  # Componentes de segurança
+│   │   └── JwtAuthFilter.java
+│   └── service/                   # Serviços de autenticação
+│       └── JwtService.java
 ├── user/                          # Módulo de usuários
 │   ├── controller/                # Controladores de usuário
 │   │   └── UserController.java
@@ -35,7 +49,7 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 │   │   └── UserRepository.java
 │   └── service/                   # Serviços de usuário
 │       └── UserService.java
-├── product/                       # Módulo de produtos ✅
+├── Produtos/                      # Módulo de produtos/ingredientes
 │   ├── controller/                # Controladores de produtos
 │   │   └── ProductController.java
 │   ├── model/                     # Entidades de produtos
@@ -45,57 +59,109 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 │   │   └── ProductRepository.java
 │   └── service/                   # Serviços de produtos
 │       └── ProductService.java
-├── auth/                          # Módulo de autenticação
-│   ├── controller/                # Controladores de autenticação
-│   │   └── AuthController.java
-│   ├── DTO/                       # DTOs de autenticação
-│   │   └── AuthRequest.java
-│   ├── security/                  # Componentes de segurança
-│   │   └── JwtAuthFilter.java
-│   └── service/                   # Serviços de autenticação
-│       └── JwtService.java
+├── receita/                       # Módulo de receitas
+│   ├── controller/                # Controladores de receitas
+│   │   └── ReceitaController.java
+│   ├── model/                     # Entidades de receitas
+│   │   └── entities/
+│   │       ├── Receita.java
+│   │       └── IngredienteDaReceita.java
+│   ├── repository/                # Repositórios de receitas
+│   │   ├── ReceitaRepository.java
+│   │   └── IngredienteDaReceitaRepository.java
+│   └── service/                   # Serviços de receitas
+│       └── ReceitaService.java
+├── producao/                      # Módulo de produção
+│   ├── controller/                # Controladores de produção
+│   │   └── ProducaoController.java
+│   ├── model/                     # Entidades de produção
+│   │   └── entities/
+│   │       └── Producao.java
+│   ├── repository/                # Repositórios de produção
+│   │   └── ProducaoRepository.java
+│   └── service/                   # Serviços de produção
+│       └── ProducaoService.java
 ├── config/                        # Configurações da aplicação
-│   └── SecurityConfiguration.java
+│   ├── SecurityConfiguration.java
+│   └── GlobalExceptionHandler.java
 └── GestaoApplication.java         # Classe principal da aplicação
 ```
 
-
-## Funcionalidades Atuais
+## Funcionalidades Implementadas
 
 ### 1. **Sistema de Autenticação JWT**
+
 - Autenticação segura com tokens JWT
-- Expiração de tokens configurável
+- Expiração de tokens configurável (24 horas)
 - Filtro de autenticação automático
 - Criptografia de senhas com BCrypt
+- Validação de roles no token
 
 ### 2. **Gerenciamento de Usuários**
+
 - Criação de usuários (apenas administradores)
 - Listagem de todos os usuários
 - Exclusão de usuários (apenas administradores)
 - Sistema de roles (ADMIN, RH, USER)
 
-### 3. **Gestão de Produtos e Estoque** ✅
+### 3. **Gestão de Produtos e Estoque**
+
 - ✅ Cadastro de produtos/ingredientes
 - ✅ Listagem de produtos
 - ✅ Exclusão de produtos por ID
-- ✅ Exclusão geral e reset do contador de ID (apenas ADMIN)
+- ✅ Exclusão geral de todos os produtos (apenas ADMIN)
 - ✅ Controle de estoque por quantidade, peso ou volume
 - ✅ Gerenciamento de preços de compra e venda
+- ✅ Busca de produtos por nome (case-insensitive)
+- ✅ Métodos para adicionar e descontar estoque
 
-### 4. **Controle de Acesso**
+### 4. **Sistema de Receitas**
+
+- ✅ Cadastro de receitas com ingredientes
+- ✅ Listagem de todas as receitas
+- ✅ Busca de receitas por ID
+- ✅ Busca de receitas por nome (busca parcial)
+- ✅ Atualização de receitas
+- ✅ Exclusão de receitas
+- ✅ Validação de produtos por ID ou nome
+- ✅ Gestão automática de ingredientes
+
+### 5. **Sistema de Produção**
+
+- ✅ Registro de produções com receitas
+- ✅ Cálculo automático de proporção de ingredientes
+- ✅ Desconto automático de estoque baseado na produção
+- ✅ Validação de estoque antes da produção
+- ✅ Listagem de todas as produções
+- ✅ Busca de produção por ID
+- ✅ Busca de produções por receita
+- ✅ Histórico de produções ordenado por data
+
+### 6. **Controle de Acesso**
+
 - Autorização baseada em roles
 - Endpoints protegidos por JWT
 - Diferentes níveis de permissão
+- Tratamento centralizado de exceções
+
+### 7. **Tratamento de Erros**
+
+- Tratamento centralizado via `GlobalExceptionHandler`
+- Mensagens de erro descritivas e informativas
+- Logging detalhado para diagnóstico
+- Respostas HTTP apropriadas
 
 ## Configuração e Instalação
 
 ### Pré-requisitos
+
 - Java 21
 - Maven 3.6+
 - Docker e Docker Compose
 - MySQL 8.0 (via Docker)
 
 ### 1. Clone o Repositório
+
 ```bash
 git clone <url-do-repositorio>
 cd SistemaDeGestao
@@ -104,18 +170,24 @@ cd SistemaDeGestao
 ### 2. Configuração do Banco de Dados com Docker
 
 #### Iniciando o Container MySQL
+
 ```bash
-# Na raiz do projeto, execute:
-docker-compose up -d
+# Navegue até a pasta do backend
+cd SistemaDeGestao-Backend
+
+# Inicie o container
+docker compose up -d
 ```
 
 Isso irá:
+
 - Criar um container MySQL 8.0
-- Configurar o banco `erp_database` (nome será mantido por compatibilidade)
+- Configurar o banco `erp_database`
 - Mapear a porta 2311 para 3306
 - Persistir dados na pasta `./data`
 
 #### Verificando se o Container está Rodando
+
 ```bash
 docker ps
 ```
@@ -123,12 +195,16 @@ docker ps
 ### 3. Executando a Aplicação
 
 #### Via Maven
+
 ```bash
+cd SistemaDeGestao-Backend
 mvn spring-boot:run
 ```
 
 #### Via JAR
+
 ```bash
+cd SistemaDeGestao-Backend
 mvn clean package
 java -jar target/ERP-0.0.1-SNAPSHOT.jar
 ```
@@ -146,6 +222,7 @@ A aplicação estará disponível em: `http://localhost:8081`
 - **Role**: `ADMIN`
 
 ### Alterando as Credenciais do Administrador
+
 Para alterar as credenciais antes da primeira execução, edite o arquivo:
 `src/main/java/CodingTechnology/SistemaDeGestao/GestaoApplication.java`
 
@@ -156,217 +233,418 @@ masterUser.setPassword(passwordEncoder.encode("SuaSenhaSegura"));
 masterUser.setRole("ADMIN");
 ```
 
-
 ## API Endpoints
 
 ### Base URL
+
 ```
 http://localhost:8081
 ```
 
-### 1. **Autenticação JWT**
+### Autenticação JWT
 
 #### POST /api/auth/login
+
 Autentica um usuário e retorna um token JWT.
 
 **Headers:**
+
 ```
 Content-Type: application/json
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
-    "username": "UserAdmin",
-    "password": "Master@123"
+  "username": "UserAdmin",
+  "password": "Master@123"
 }
 ```
 
 **Resposta de Sucesso (200):**
+
 ```json
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
 **Resposta de Erro (400):**
+
 ```json
 {
-    "error": "Invalid credentials"
+  "error": "Invalid credentials"
 }
 ```
 
-### 2. **Criação de Usuário (Apenas ADMIN)**
+---
+
+### Usuários
 
 #### POST /api/users/create
-Cria um novo usuário no sistema.
+
+Cria um novo usuário no sistema. **(Apenas ADMIN)**
 
 **Headers:**
+
 ```
 Content-Type: application/json
 Authorization: Bearer <seu-token-jwt>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
-    "username": "Usuarioteste",
-    "password": "senhaDoRh1234",
-    "role": "RH"
+  "username": "Usuarioteste",
+  "password": "senhaDoRh1234",
+  "role": "RH"
 }
 ```
 
-### 3. **Listagem de Usuários**
-
 #### GET /api/users/listAll
+
 Lista todos os usuários cadastrados.
 
 **Headers:**
+
 ```
 Authorization: Bearer <seu-token-jwt>
 ```
-
-### 4. **Exclusão de Usuário (Apenas ADMIN)**
 
 #### DELETE /api/users/delete/{username}
-Remove um usuário do sistema.
+
+Remove um usuário do sistema. **(Apenas ADMIN)**
 
 **Headers:**
+
 ```
 Authorization: Bearer <seu-token-jwt>
 ```
 
-### 5. **Cadastro de Produto**
+---
+
+### Produtos
 
 #### POST /api/products/create
+
 Cadastra um novo produto/ingrediente.
 
 **Headers:**
+
 ```
 Content-Type: application/json
 Authorization: Bearer <seu-token-jwt>
 ```
-**Body (JSON):**
+
+**Corpo da Requisição:**
+
 ```json
 {
   "nome": "Chocolate em pó",
   "tipoControle": "PESO",
   "unidadeMedida": "grama",
-  "quantidadeInicial": 1000,
-  "quantidadeAtual": 1000,
+  "quantidadeInicial": 1000.0,
+  "quantidadeAtual": 1000.0,
   "precoCompra": 20.0,
   "precoVenda": 0.0
 }
 ```
 
-### 6. **Listagem de Produtos**
+**Tipos de Controle:**
+
+- `QUANTIDADE`: Para produtos contáveis (unidades)
+- `PESO`: Para produtos medidos por peso (kg, grama)
+- `VOLUME`: Para produtos medidos por volume (litro, ml)
 
 #### GET /api/products/list
+
 Lista todos os produtos cadastrados.
 
 **Headers:**
+
 ```
 Authorization: Bearer <seu-token-jwt>
 ```
 
-### 7. **Exclusão de Produto por ID**
-
 #### DELETE /api/products/delete/{id}
+
 Remove um produto pelo ID.
 
 **Headers:**
+
 ```
 Authorization: Bearer <seu-token-jwt>
 ```
-
-### 8. **Exclusão Geral e Reset do ID (Apenas ADMIN)**
 
 #### DELETE /api/products/delete/all-reset
-Remove todos os produtos e reinicia o contador de ID.
+
+Remove todos os produtos do sistema. **(Apenas ADMIN)**
 
 **Headers:**
+
 ```
 Authorization: Bearer <seu-token-jwt>
 ```
 
-**Acesso**: Apenas usuários com role ADMIN
+---
 
-## Testando a API com Postman
+### Receitas
 
-### 1. **Configuração Inicial**
+#### POST /api/receitas/criar
 
-1. Abra o Postman
-2. Crie uma nova Collection chamada "Sistema de Gestão"
-3. Configure a Base URL: `http://localhost:8081`
+Cria uma nova receita com seus ingredientes.
 
-### 2. **Teste de Login**
+**Headers:**
 
-1. **Criar Nova Requisição:**
-   - Método: `POST`
-   - URL: `http://localhost:8081/api/auth/login`
-   - Headers: `Content-Type: application/json`
+```
+Content-Type: application/json
+Authorization: Bearer <seu-token-jwt>
+```
 
-2. **Body (raw JSON):**
+**Corpo da Requisição:**
+
 ```json
 {
-    "username": "UserAdmin",
-    "password": "Master@123"
+  "nome": "Brownie",
+  "descricao": "Brownie tradicional de chocolate",
+  "quantidadePadraoProduzida": 12,
+  "ingredientes": [
+    {
+      "produto": {
+        "nome": "Chocolate em pó"
+      },
+      "quantidadeNecessaria": 500.0,
+      "observacoes": "Chocolate meio amargo"
+    },
+    {
+      "produto": {
+        "id": 2
+      },
+      "quantidadeNecessaria": 250.0
+    }
+  ]
 }
 ```
 
-3. **Executar e Copiar o Token:**
-   - Após executar, copie o valor do campo `token` da resposta
+**Nota:** Você pode especificar o produto pelo `nome` ou pelo `id`. O sistema busca automaticamente o produto correspondente.
 
-### 3. **Configurando Autenticação para Outras Requisições**
+#### GET /api/receitas/listar
 
-Para **TODAS** as outras requisições (exceto login):
+Lista todas as receitas cadastradas com seus ingredientes.
 
-1. **Vá para a aba "Authorization"**
-2. **Selecione "Type": `Bearer Token`**
-3. **Cole o token JWT no campo "Token"**
-4. **Salve a requisição**
+**Headers:**
 
-### 4. **Teste de Criação de Usuário**
+```
+Authorization: Bearer <seu-token-jwt>
+```
 
-1. **Criar Nova Requisição:**
-   - Método: `POST`
-   - URL: `http://localhost:8081/api/users/create`
-   - Authorization: Bearer Token (com o token do login)
+#### GET /api/receitas/buscar/{id}
 
-2. **Body (raw JSON):**
+Busca uma receita específica por ID.
+
+**Headers:**
+
+```
+Authorization: Bearer <seu-token-jwt>
+```
+
+#### GET /api/receitas/buscar?nome={nome}
+
+Busca receitas por nome (busca parcial, case-insensitive).
+
+**Headers:**
+
+```
+Authorization: Bearer <seu-token-jwt>
+```
+
+**Exemplo:**
+
+```
+GET /api/receitas/buscar?nome=Brownie
+```
+
+#### PUT /api/receitas/atualizar/{id}
+
+Atualiza uma receita existente.
+
+**Headers:**
+
+```
+Content-Type: application/json
+Authorization: Bearer <seu-token-jwt>
+```
+
+**Corpo da Requisição:** (mesmo formato do POST /criar)
+
+#### DELETE /api/receitas/excluir/{id}
+
+Exclui uma receita por ID.
+
+**Headers:**
+
+```
+Authorization: Bearer <seu-token-jwt>
+```
+
+---
+
+### Produção
+
+#### POST /api/producoes/registrar
+
+Registra uma nova produção e desconta automaticamente o estoque dos ingredientes.
+
+**Headers:**
+
+```
+Content-Type: application/json
+Authorization: Bearer <seu-token-jwt>
+```
+
+**Corpo da Requisição:**
+
 ```json
 {
-    "username": "Usuarioteste",
-    "password": "senhaDoRh1234",
-    "role": "RH"
+  "receita": {
+    "id": 1
+  },
+  "quantidadeProduzida": 24,
+  "observacoes": "Produção do dia 15/01/2024"
 }
 ```
 
-### 5. **Teste de Listagem de Usuários**
+**Funcionamento:**
 
-1. **Criar Nova Requisição:**
-   - Método: `GET`
-   - URL: `http://localhost:8081/api/users/listAll`
-   - Authorization: Bearer Token (com o token do login)
+- O sistema calcula automaticamente a proporção baseada na quantidade padrão da receita
+- Valida se há estoque suficiente de todos os ingredientes
+- Desconta automaticamente o estoque após a validação
+- Se algum ingrediente estiver em falta, retorna erro descritivo
 
-### 6. **Teste de Exclusão de Usuário**
+**Exemplo:**
 
-1. **Criar Nova Requisição:**
-   - Método: `DELETE`
-   - URL: `http://localhost:8081/api/users/delete/Usuarioteste`
-   - Authorization: Bearer Token (com o token do login)
+- Receita padrão: 12 brownies
+- Quantidade produzida: 24 brownies
+- Se a receita precisa de 500g de chocolate para 12 brownies, serão descontados 1000g para 24 brownies
+
+#### GET /api/producoes/listar
+
+Lista todas as produções ordenadas por data (mais recentes primeiro).
+
+**Headers:**
+
+```
+Authorization: Bearer <seu-token-jwt>
+```
+
+#### GET /api/producoes/buscar/{id}
+
+Busca uma produção específica por ID.
+
+**Headers:**
+
+```
+Authorization: Bearer <seu-token-jwt>
+```
+
+#### GET /api/producoes/buscar-por-receita/{receitaId}
+
+Busca todas as produções de uma receita específica.
+
+**Headers:**
+
+```
+Authorization: Bearer <seu-token-jwt>
+```
+
+---
+
+## Fluxo de Uso do Sistema
+
+### 1. Cadastro de Produtos/Ingredientes
+
+Primeiro, cadastre os produtos que serão usados como ingredientes:
+
+```json
+POST /api/products/create
+{
+    "nome": "Chocolate em pó",
+    "tipoControle": "PESO",
+    "unidadeMedida": "grama",
+    "quantidadeInicial": 1500.0,
+    "quantidadeAtual": 1500.0,
+    "precoCompra": 20.0,
+    "precoVenda": 0.0
+}
+```
+
+### 2. Criação de Receitas
+
+Crie receitas informando os ingredientes e a quantidade padrão produzida:
+
+```json
+POST /api/receitas/criar
+{
+    "nome": "Brownie",
+    "descricao": "Brownie tradicional",
+    "quantidadePadraoProduzida": 12,
+    "ingredientes": [
+        {
+            "produto": {
+                "nome": "Chocolate em pó"
+            },
+            "quantidadeNecessaria": 500.0
+        }
+    ]
+}
+```
+
+### 3. Registro de Produção
+
+Ao produzir, registre a produção e o sistema descontará automaticamente o estoque:
+
+```json
+POST /api/producoes/registrar
+{
+    "receita": {
+        "id": 1
+    },
+    "quantidadeProduzida": 12,
+    "observacoes": "Produção teste"
+}
+```
+
+O sistema irá:
+
+- ✅ Calcular a proporção de ingredientes necessários
+- ✅ Validar se há estoque suficiente
+- ✅ Descontar automaticamente do estoque
+- ✅ Registrar a produção no histórico
+
+### 4. Consulta de Estoque
+
+Consulte o estoque atual de qualquer produto:
+
+```json
+GET /api/products/list
+```
 
 ## Sistema de Roles
 
 ### Roles Disponíveis
+
 - **ADMIN**: Acesso total ao sistema
   - Pode criar usuários
   - Pode excluir usuários
   - Pode listar usuários
+  - Pode excluir todos os produtos
 - **RH**: Acesso limitado (futuras implementações)
 - **USER**: Acesso básico (futuras implementações)
 
 ### Fluxo de Autenticação
+
 1. **Login**: Usuário faz login com username/password
 2. **Token**: Sistema retorna token JWT válido por 24 horas
 3. **Autorização**: Token é enviado no header `Authorization: Bearer <token>`
@@ -375,42 +653,49 @@ Para **TODAS** as outras requisições (exceto login):
 ## Configurações do Sistema
 
 ### Banco de Dados
+
 - **Host**: localhost:2311
-- **Database**: erp_database (nome mantido por compatibilidade)
+- **Database**: erp_database
 - **Username**: admin
 - **Password**: admin
 - **Root Password**: Mudar123
 
 ### Aplicação
+
 - **Porta**: 8081
 - **JWT Secret**: Configurado em `application.properties`
 - **JWT Expiration**: 24 horas (86400000 ms)
 
 ### Docker
+
 - **MySQL Port**: 2311:3306
-- **Data Persistence**: `./data` directory
+- **Data Persistence**: `./data` directory (dentro de SistemaDeGestao-Backend)
 - **Auto-restart**: Always
 
 ## Comandos Úteis
 
 ### Docker
+
 ```bash
-# Iniciar containers
-docker-compose up -d
+# Iniciar containers (dentro de SistemaDeGestao-Backend)
+cd SistemaDeGestao-Backend
+docker compose up -d
 
 # Parar containers
-docker-compose down
+docker compose down
 
 # Ver logs
-docker-compose logs -f
+docker compose logs -f
 
 # Reiniciar apenas o banco
-docker-compose restart db
+docker compose restart db
 ```
 
 ### Maven
+
 ```bash
 # Compilar projeto
+cd SistemaDeGestao-Backend
 mvn clean compile
 
 # Executar testes
@@ -428,54 +713,56 @@ mvn spring-boot:run
 ### Problemas Comuns
 
 1. **Erro de Conexão com Banco:**
+
    - Verifique se o Docker está rodando
    - Confirme se a porta 2311 está livre
-   - Execute: `docker-compose logs db`
+   - Execute: `docker compose logs db` (dentro da pasta SistemaDeGestao-Backend)
 
 2. **Token Inválido:**
+
    - Faça novo login para obter token atualizado
-   - Verifique se o token está sendo enviado corretamente
+   - Verifique se o token está sendo enviado corretamente no header `Authorization: Bearer <token>`
 
 3. **Acesso Negado (403):**
-   - Confirme se o usuário tem role ADMIN
-   - Verifique se o token é válido
 
-4. **Porta 8081 em Uso:**
+   - Confirme se o usuário tem a role necessária (ADMIN para algumas operações)
+   - Verifique se o token é válido
+   - Verifique os logs da aplicação
+
+4. **Produto não encontrado ao criar receita:**
+
+   - Verifique se o produto está cadastrado: `GET /api/products/list`
+   - Use o nome exato do produto (case-insensitive)
+   - Ou use o ID do produto diretamente
+
+5. **Estoque insuficiente na produção:**
+
+   - Verifique o estoque atual: `GET /api/products/list`
+   - Adicione mais produtos ao estoque antes de produzir
+   - A quantidade produzida pode estar muito alta em relação ao estoque disponível
+
+6. **Porta 8081 em Uso:**
    - Altere a porta em `application.properties`
    - Ou pare o processo que está usando a porta
 
-## Funcionalidades Atuais do Sistema
+## Funcionalidades Futuras
 
-### ✅ Implementado
-- **Sistema de Autenticação JWT**: Login seguro com tokens
-- **Gerenciamento de Usuários**: Criação, listagem e exclusão
-- **Gerenciamento de Produtos**: Cadastro, listagem e exclusão de produtos/ingredientes
-- **Controle de Estoque**: Gestão de quantidades iniciais e atuais
-- **Controle de Preços**: Gerenciamento de preços de compra e venda
-- **Controle de Acesso**: Sistema de roles (ADMIN, RH, USER)
-- **Segurança**: Criptografia BCrypt para senhas
-- **Tipos de Controle**: Suporte para QUANTIDADE, PESO e VOLUME
+### v2.1 (Planejado) - Funcionalidades Avançadas
 
-## Próximas Implementações
-
-### v2.1 (Planejado) - Funcionalidades Avançadas de Estoque e Vendas
 - [ ] Atualização de produtos (PUT/PATCH)
-- [ ] Busca e filtros de produtos
+- [ ] Busca e filtros avançados de produtos
 - [ ] Sistema de vendas
-- [ ] Cadastro de receitas (composição de produtos)
-- [ ] Cálculo automático de uso de materiais
-- [ ] Controle de entrada e saída de produtos
-- [ ] Histórico de movimentações de estoque
+- [ ] Controle de entrada e saída de produtos (histórico detalhado)
 - [ ] Relatórios de estoque
 - [ ] Atualização de usuários
 - [ ] Logs de auditoria
-- [ ] Validações avançadas de produtos
+- [ ] Notificações de estoque baixo
 
 ### v2.2 (Futuro) - Análises e Relatórios
+
 - [ ] Dashboard de vendas
 - [ ] Relatórios de consumo de materiais
-- [ ] Análise de rentabilidade por produto
-- [ ] Sistema de notificações (estoque baixo)
+- [ ] Análise de rentabilidade por produto/receita
 - [ ] Histórico de vendas
 - [ ] API de relatórios avançados
 - [ ] Integração com sistemas externos
@@ -483,6 +770,7 @@ mvn spring-boot:run
 ## Contribuição
 
 Para contribuir com o projeto:
+
 1. Fork o repositório
 2. Crie uma branch para sua feature
 3. Commit suas mudanças
