@@ -6,13 +6,15 @@
 ## Sobre o Sistema
 
 Este é um **Sistema de Gestão de Vendas e Estoque** desenvolvido para:
-- **Gestão de Vendas**: Sistema completo de vendas (em desenvolvimento)
-- **Controle de Estoque**: Gerenciamento de entrada e saída de produtos (em desenvolvimento)
-- **Cadastro de Produtos**: Registro de produtos comercializados (em desenvolvimento)
-- **Receitas**: Cadastro de composições e fórmulas (em desenvolvimento)
-- **Cálculo de Uso**: Análise automática de consumo de materiais (em desenvolvimento)
+- ✅ **Autenticação e Autorização**: Sistema completo com JWT e controle de acesso baseado em roles
+- ✅ **Gestão de Usuários**: Criação, listagem e exclusão de usuários com diferentes níveis de acesso
+- ✅ **Gestão de Produtos**: Cadastro, listagem, exclusão e controle de estoque de produtos/ingredientes
+- ✅ **Sistema de Receitas**: Cadastro de receitas com ingredientes e quantidades necessárias
+- ✅ **Sistema de Produção**: Registro de produções com desconto automático de estoque
+- ✅ **Controle de Estoque Automático**: Desconto automático baseado em produções realizadas
+- ✅ **Tratamento de Erros**: Sistema centralizado de tratamento de exceções
 
-**Status Atual**: Sistema base com autenticação JWT, gerenciamento de usuários e gestão de produtos totalmente implementados e funcionais.
+**Status Atual**: Sistema totalmente funcional com todos os módulos implementados e testados.
 
 ## Especificações Técnicas
 
@@ -26,82 +28,150 @@ Este é um **Sistema de Gestão de Vendas e Estoque** desenvolvido para:
 - **Maven**: 3.x
 - **JWT**: 0.12.5
 - **Lombok**: 1.18.x
+- **Jackson**: Para serialização JSON
 
-### Nova Estrutura do Projeto
-O projeto foi reorganizado para melhor separação de responsabilidades e manutenibilidade:
+### Estrutura do Projeto
 
 ```
 src/main/java/CodingTechnology/SistemaDeGestao/
-├── user/                          # Módulo de usuários
-│   ├── controller/                # Controladores de usuário
-│   │   └── UserController.java
-│   ├── model/                     # Entidades de usuário
-│   │   └── entities/
-│   │       └── User.java
-│   ├── repository/                # Repositórios de usuário
-│   │   └── UserRepository.java
-│   └── service/                   # Serviços de usuário
-│       └── UserService.java
-├── product/                       # Módulo de produtos ✅
-│   ├── controller/                # Controladores de produtos
-│   │   └── ProductController.java
-│   ├── model/                     # Entidades de produtos
-│   │   └── entities/
-│   │       └── Product.java
-│   ├── repository/                # Repositórios de produtos
-│   │   └── ProductRepository.java
-│   └── service/                   # Serviços de produtos
-│       └── ProductService.java
 ├── auth/                          # Módulo de autenticação
-│   ├── controller/                # Controladores de autenticação
+│   ├── controller/
 │   │   └── AuthController.java
-│   ├── DTO/                       # DTOs de autenticação
+│   ├── DTO/
 │   │   └── AuthRequest.java
-│   ├── security/                  # Componentes de segurança
+│   ├── security/
 │   │   └── JwtAuthFilter.java
-│   └── service/                   # Serviços de autenticação
+│   └── service/
 │       └── JwtService.java
+├── user/                          # Módulo de usuários
+│   ├── controller/
+│   │   └── UserController.java
+│   ├── model/entities/
+│   │   └── User.java
+│   ├── repository/
+│   │   └── UserRepository.java
+│   └── service/
+│       └── UserService.java
+├── Produtos/                      # Módulo de produtos/ingredientes
+│   ├── controller/
+│   │   └── ProductController.java
+│   ├── model/entities/
+│   │   └── Product.java
+│   ├── repository/
+│   │   └── ProductRepository.java
+│   └── service/
+│       └── ProductService.java
+├── receita/                       # Módulo de receitas
+│   ├── controller/
+│   │   └── ReceitaController.java
+│   ├── model/entities/
+│   │   ├── Receita.java
+│   │   └── IngredienteDaReceita.java
+│   ├── repository/
+│   │   ├── ReceitaRepository.java
+│   │   └── IngredienteDaReceitaRepository.java
+│   └── service/
+│       └── ReceitaService.java
+├── producao/                      # Módulo de produção
+│   ├── controller/
+│   │   └── ProducaoController.java
+│   ├── model/entities/
+│   │   └── Producao.java
+│   ├── repository/
+│   │   └── ProducaoRepository.java
+│   └── service/
+│       └── ProducaoService.java
 ├── config/                        # Configurações da aplicação
-│   └── SecurityConfiguration.java
+│   ├── SecurityConfiguration.java
+│   └── GlobalExceptionHandler.java
 └── GestaoApplication.java         # Classe principal da aplicação
 ```
 
-### Benefícios da Nova Organização
-- **Modularidade**: Cada funcionalidade tem seu próprio pacote
-- **Manutenibilidade**: Código mais organizado e fácil de manter
-- **Escalabilidade**: Facilita adição de novos módulos (produtos, vendas, estoque, receitas)
-- **Testabilidade**: Melhor isolamento para testes unitários
-- **Clareza**: Estrutura mais intuitiva para novos desenvolvedores
 ### Arquitetura do Sistema
 
-│   Controller    │    │     Service     │    │   Repository    │
-│                 │    │   Logic)        │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-│   Model/Entity  │    │   Security      │    │   Database      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
-│  │ Controller  │  │ Controller  │  │  SecurityConfiguration │ │
-│  │ Service     │  │ DTO         │  │                         │ │
-│  │ Repository  │  │ Security    │  │  GestaoApplication     │ │
-│  │ Model       │  │             │  │  (Main Class)           │ │
-│  └─────────────┘  └─────────────┘  └─────────────────────────┘ │
-│                                                                  │
+│                        Camada de Apresentação                    │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │   Controller │  │   Controller │  │   Controller │         │
+│  │   (REST)     │  │   (REST)     │  │   (REST)     │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────┼───────────────────────────────────┐
+│                        Camada de Negócio                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │   Service    │  │   Service    │  │   Service    │         │
+│  │   (Lógica)   │  │   (Lógica)   │  │   (Lógica)   │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────┼───────────────────────────────────┘
+                              │
+┌─────────────────────────────┼───────────────────────────────────┐
+│                    Camada de Acesso a Dados                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │  Repository  │  │  Repository  │  │  Repository  │         │
+│  │   (JPA)      │  │   (JPA)      │  │   (JPA)      │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────┼───────────────────────────────────┘
+                              │
+┌─────────────────────────────┼───────────────────────────────────┐
+│                         Banco de Dados                           │
+│                     MySQL 8.0 (via Docker)                       │
+└──────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                        Segurança (JWT)                           │
 │  ┌────────────────────────────────────────────────────────────┐ │
-│  │         Módulos Futuros (Em Desenvolvimento)               │ │
+│  │  JwtAuthFilter → JwtService → SecurityConfiguration       │ │
 │  └────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
+```
 
-### 1. **User.java** - Entidade Principal
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/user/model/`
+## Módulos Implementados
+
+### 1. Módulo de Autenticação (auth)
+
+#### AuthController.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/auth/controller/`
+
+**Endpoint**: `POST /api/auth/login`
+- Autentica usuário e retorna token JWT
+- Endpoint público (não requer autenticação)
+- Retorna token válido por 24 horas
+
+#### JwtService.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/auth/service/`
+
+**Funcionalidades**:
+- Geração de tokens JWT com roles
+- Validação de tokens
+- Extração de claims (username, roles)
+- Verificação de expiração
+
+#### JwtAuthFilter.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/auth/security/`
+
+**Funcionalidades**:
+- Intercepta requisições HTTP
+- Valida tokens JWT no header Authorization
+- Configura SecurityContext com autenticação
+- Limpa SecurityContext em caso de erro
+
+### 2. Módulo de Usuários (user)
+
+#### User.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/user/model/entities/`
 
 ```java
 @Entity
+@Table(name = "users")
 @Data
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
     
     @Column(nullable = false)
@@ -112,436 +182,33 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 }
 ```
 
-**Características Técnicas:**
-- **Mapeamento JPA**: Tabela `users` no banco de dados
-- **Chave Primária**: Auto-incremento (IDENTITY)
-- **Constraints**: Username único e obrigatório
-- **Lombok**: Anotação `@Data` gera getters, setters, equals, hashCode e toString
-- **Simplificação**: Removido campo `email` para focar em `username` como identificador único
+**Características**:
+- Implementa `UserDetails` para integração com Spring Security
+- Roles com prefixo `ROLE_` automático
+- Username único e obrigatório
 
-### 2. **UserRepository.java** - Camada de Acesso a Dados
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/user/repository/`
+#### UserRepository.java
+**Métodos**:
+- `findByUsername(String username)`: Busca por username
+- `existsByUsername(String username)`: Verifica existência
+- `deleteByUsername(String username)`: Remove por username
 
-```java
-@Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByUsername(String username);
-    boolean existsByUsername(String username);
-    
-    @Transactional
-    void deleteByUsername(String username);
-}
-```
+#### UserService.java
+**Funcionalidades**:
+- Criptografia automática de senhas com BCrypt
+- Validação de username único
+- Gerenciamento de transações
 
-**Métodos Disponíveis:**
-- **Herdados do JpaRepository**:
-  - `save(User entity)`: Salva ou atualiza entidade
-  - `findById(Long id)`: Busca por ID
-  - `findAll()`: Lista todas as entidades
-  - `delete(User entity)`: Remove entidade
-  - `count()`: Conta total de entidades
-- **Customizados**:
-  - `findByUsername(String username)`: Busca por username (retorna Optional)
-  - `existsByUsername(String username)`: Verifica existência por username
-  - `deleteByUsername(String username)`: Remove usuário por username
+#### UserController.java
+**Endpoints**:
+- `GET /api/users/listAll`: Lista todos os usuários
+- `POST /api/users/create`: Cria usuário (apenas ADMIN)
+- `DELETE /api/users/delete/{username}`: Remove usuário (apenas ADMIN)
 
-### 3. **UserService.java** - Lógica de Negócio
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/user/service/`
+### 3. Módulo de Produtos (Produtos)
 
-```java
-@Service
-public class UserService {
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    
-    public User saveUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
-    }
-    
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-    
-    public List<User> findAllUsers() {
-        return userRepository.findAll();
-    }
-    
-    @Transactional
-    public void deleteByUsername(String username) {
-        userRepository.deleteByUsername(username);
-    }
-}
-```
-
-**Funcionalidades de Segurança:**
-- **Criptografia Automática**: BCrypt para todas as senhas
-- **Injeção de Dependência**: UserRepository e PasswordEncoder
-- **Transações**: Gerenciadas automaticamente pelo Spring
-- **Optional**: Uso de Optional para tratamento seguro de valores nulos
-
-### 4. **UserController.java** - API REST de Usuários
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/user/controller/`
-
-```java
-@RestController
-@RequestMapping("/api/users")
-public class UserController {
-    @Autowired
-    private UserService userService;
-    
-    @GetMapping("/listAll")
-    public ResponseEntity<List<User>> listAllUsers() {
-        List<User> users = userService.findAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
-    }
-    
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/create")
-    public ResponseEntity<String> createUser(@RequestBody User user) { 
-        if (userService.findByUsername(user.getUsername()).isPresent()) {
-            return new ResponseEntity<>("Name already in use:", HttpStatus.CONFLICT);
-        }
-        userService.saveUser(user);
-        return new ResponseEntity<>("User created successfully:", HttpStatus.CREATED);
-    }
-    
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/delete/{username}")
-    public ResponseEntity<String> deleteUser(@PathVariable String username) {
-        if (userService.findByUsername(username).isEmpty()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-        userService.deleteByUsername(username);
-        return new ResponseEntity<>("User deleted successfully!", HttpStatus.OK);
-    }
-}
-```
-
-**Endpoints da API:**
-
-#### POST /api/users/create
-- **Função**: Cria novo usuário (apenas administradores)
-- **Autorização**: `@PreAuthorize("hasRole('ADMIN')")`
-- **Content-Type**: application/json
-- **Autenticação**: JWT Bearer Token (apenas ADMIN)
-- **Corpo**:
-```json
-{
-  "username": "Usuarioteste",
-  "password": "senhaDoRh1234",
-  "role": "RH"
-}
-```
-- **Respostas**:
-  - `201 Created`: Usuário criado com sucesso
-  - `409 Conflict`: Username já existe
-  - `403 Forbidden`: Acesso negado (não é ADMIN)
-  - `401 Unauthorized`: Autenticação necessária
-
-#### GET /api/users/listAll
-- **Função**: Lista todos os usuários
-- **Autenticação**: JWT Bearer Token obrigatório
-- **Resposta**: `200 OK` - Lista de usuários em JSON
-
-#### DELETE /api/users/delete/{username}
-- **Função**: Remove usuário por username (apenas administradores)
-- **Autorização**: `@PreAuthorize("hasRole('ADMIN')")`
-- **Autenticação**: JWT Bearer Token (apenas ADMIN)
-- **Parâmetros**: `username` (path variable)
-- **Respostas**:
-  - `200 OK`: Usuário removido com sucesso
-  - `404 Not Found`: Usuário não encontrado
-  - `403 Forbidden`: Acesso negado (não é ADMIN)
-  - `401 Unauthorized`: Autenticação necessária
-
-### 5. **AuthController.java** - API REST de Autenticação
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/auth/controller/`
-
-```java
-@RestController
-@RequestMapping("/api/auth")
-public class AuthController {
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    
-    @Autowired
-    private JwtService jwtService;
-    
-    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
-    
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
-        log.debug("Login attempt for username={}", authRequest.getUsername());
-        
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
-        );
-        
-        if (authentication.isAuthenticated()) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtService.generateToken(userDetails);
-            log.debug("Token generated for user {} (len={})", userDetails.getUsername(), token != null ? token.length() : 0);
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid credentials"));
-        }
-    }
-}
-```
-
-**Endpoints da API:**
-
-#### POST /api/auth/login
-- **Função**: Autentica usuário e retorna token JWT
-- **Acesso**: Público
-- **Content-Type**: application/json
-- **Corpo**:
-```json
-{
-  "username": "UserAdmin",
-  "password": "Master@123"
-}
-```
-- **Respostas**:
-  - `200 OK`: Token JWT gerado
-  - `400 Bad Request`: Credenciais inválidas
-
-### 6. **AuthRequest.java** - DTO de Autenticação
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/auth/DTO/`
-
-```java
-@Data
-public class AuthRequest {
-    private String username;
-    private String password;
-}
-```
-
-**Funcionalidades:**
-- **DTO**: Data Transfer Object para requisições de autenticação
-- **Lombok**: Anotação `@Data` para geração automática de métodos
-- **Validação**: Campos para username e password
-
-### 7. **SecurityConfiguration.java** - Configuração de Segurança
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/config/`
-
-```java
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
-public class SecurityConfiguration {
-    @Autowired
-    private JwtAuthFilter jwtAuthFilter;
-    
-    @Autowired
-    private AuthenticationProvider authenticationProvider;
-    
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf().disable()
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider)
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        
-        return http.build();
-    }
-}
-```
-
-**Configurações de Segurança:**
-- **CSRF**: Desabilitado para API REST
-- **Autenticação**: JWT Bearer Token
-- **Endpoints Públicos**: `/api/auth/**`
-- **Sessões**: Stateless para JWT
-- **Filtros**: JwtAuthFilter configurado
-- **Method Security**: Habilitado para `@PreAuthorize`
-
-### 8. **JwtService.java** - Serviço JWT
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/auth/service/`
-
-```java
-@Service
-public class JwtService {
-    @Value("${application.security.jwt.secret-key}")
-    private String secretKey;
-    
-    @Value("${application.security.jwt.expiration}")
-    private long jwtExpiration;
-    
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList()));
-        return buildToken(claims, userDetails, jwtExpiration);
-    }
-    
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-    }
-    
-    public List<? extends GrantedAuthority> extractRoles(String token) {
-        final Claims claims = extractAllClaims(token);
-        List<String> roles = (List<String>) claims.get("roles");
-        
-        if (roles == null) {
-            return List.of();
-        }
-        
-        return roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-    }
-}
-```
-
-**Funcionalidades JWT:**
-- **Geração**: Tokens JWT com claims personalizados (roles)
-- **Validação**: Verificação de validade e expiração
-- **Claims**: Extração de informações do token
-- **Configuração**: Chave secreta e expiração configuráveis
-- **Algoritmo**: HMAC-SHA256
-- **Roles**: Inclusão de roles no token para autorização
-
-### 9. **JwtAuthFilter.java** - Filtro de Autenticação JWT
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/auth/security/`
-
-```java
-@Component
-public class JwtAuthFilter extends OncePerRequestFilter {
-    @Autowired
-    private JwtService jwtService;
-    
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
-    
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userUsername;
-        
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        
-        jwt = authHeader.substring(7);
-        userUsername = jwtService.extractUsername(jwt);
-        
-        if (userUsername != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userUsername);
-            
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
-        }
-        
-        filterChain.doFilter(request, response);
-    }
-}
-```
-
-**Funcionalidades do Filtro:**
-- **Interceptação**: Requisições com header Authorization
-- **Validação**: Tokens JWT Bearer
-- **Autenticação**: Configuração automática no SecurityContext
-- **Integração**: Com JwtService e CustomUserDetailsService
-
-### 10. **ApplicationConfig.java** - Configuração de Beans
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/config/`
-
-```java
-@Configuration
-@RequiredArgsConstructor
-public class ApplicationConfig {
-    private final UserRepository userRepository;
-    
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
-    
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService());
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
-    
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-    
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-}
-```
-
-**Beans Configurados:**
-- **UserDetailsService**: Carregamento de usuários por username
-- **AuthenticationProvider**: Provedor de autenticação DAO
-- **AuthenticationManager**: Gerenciador de autenticação
-- **PasswordEncoder**: BCrypt para criptografia
-
-### 11. **CustomUserDetailsService.java** - Autenticação Customizada
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/auth/security/`
-
-```java
-@Service
-public class CustomUserDetailsService implements UserDetailsService {
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
-        
-        List<GrantedAuthority> authorities = Collections.singletonList(
-            new SimpleGrantedAuthority("ROLE_" + user.getRole())
-        );
-        
-        return new org.springframework.security.core.userdetails.User(
-            user.getUsername(), 
-            user.getPassword(), 
-            authorities
-        );
-    }
-}
-```
-
-**Funcionalidades:**
-- **Carregamento de Usuários**: Do banco de dados por username
-- **Autoridades**: Conversão de roles para Spring Security
-- **Tratamento de Erros**: UsernameNotFoundException
-- **Optional**: Uso de Optional para tratamento seguro
-
-### 12. **Product.java** - Entidade de Produtos
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/product/model/entities/`
+#### Product.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/Produtos/model/entities/`
 
 ```java
 @Entity
@@ -557,7 +224,7 @@ public class Product {
     
     private String nome;
     private String tipoControle;  // QUANTIDADE, PESO, VOLUME
-    private String unidadeMedida; // unidade, grama, litro, etc.
+    private String unidadeMedida;
     private Double quantidadeInicial;
     private Double quantidadeAtual;
     private Double precoCompra;
@@ -565,281 +232,391 @@ public class Product {
 }
 ```
 
-**Características Técnicas:**
-- **Mapeamento JPA**: Tabela `products` no banco de dados
-- **Chave Primária**: Auto-incremento (IDENTITY)
-- **Lombok**: Anotações `@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@Builder`
-- **Tipos de Controle**: Suporta QUANTIDADE, PESO e VOLUME
-- **Gestão de Estoque**: Quantidades iniciais e atuais para controle de estoque
-- **Preços**: Campos para preço de compra e venda
+**Características**:
+- Suporta diferentes tipos de controle (QUANTIDADE, PESO, VOLUME)
+- Controle de estoque com quantidades iniciais e atuais
+- Gestão de preços de compra e venda
 
-### 13. **ProductRepository.java** - Repositório de Produtos
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/product/repository/`
+#### ProductRepository.java
+**Métodos Customizados**:
+- `findByNomeIgnoreCase(String nome)`: Busca por nome (case-insensitive, único)
+- `findAllByNomeIgnoreCase(String nome)`: Busca todos com mesmo nome
+
+#### ProductService.java
+**Funcionalidades**:
+- Validação de campos obrigatórios
+- `getProductById(Long id)`: Busca produto por ID
+- `descontarEstoque(Long produtoId, Double quantidade)`: Desconta estoque
+- `adicionarEstoque(Long produtoId, Double quantidade)`: Adiciona estoque
+- Validação de estoque insuficiente
+- Transações garantidas
+
+#### ProductController.java
+**Endpoints**:
+- `POST /api/products/create`: Cadastra produto
+- `GET /api/products/list`: Lista todos os produtos
+- `DELETE /api/products/delete/{id}`: Remove produto por ID
+- `DELETE /api/products/delete/all-reset`: Remove todos os produtos (apenas ADMIN)
+
+### 4. Módulo de Receitas (receita)
+
+#### Receita.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/receita/model/entities/`
 
 ```java
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
+@Entity
+@Table(name = "receitas")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Receita {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false)
+    private String nome;
+    
+    @Column(columnDefinition = "TEXT")
+    private String descricao;
+    
+    @Column(name = "quantidade_padrao_produzida")
+    private Integer quantidadePadraoProduzida;
+    
+    @Column(name = "data_criacao", nullable = false, updatable = false)
+    private LocalDateTime dataCriacao;
+    
+    @Column(name = "data_atualizacao")
+    private LocalDateTime dataAtualizacao;
+    
+    @OneToMany(mappedBy = "receita", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<IngredienteDaReceita> ingredientes = new ArrayList<>();
 }
 ```
 
-**Métodos Disponíveis:**
-- **Herdados do JpaRepository**:
-  - `save(Product entity)`: Salva ou atualiza produto
-  - `findById(Long id)`: Busca por ID
-  - `findAll()`: Lista todos os produtos
-  - `deleteById(Long id)`: Remove produto por ID
-  - `deleteAll()`: Remove todos os produtos
-  - `count()`: Conta total de produtos
+**Características**:
+- Relacionamento OneToMany com ingredientes
+- Timestamps automáticos (criação e atualização)
+- Quantidade padrão produzida para cálculo de proporção
 
-### 14. **ProductService.java** - Serviço de Produtos
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/product/service/`
+#### IngredienteDaReceita.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/receita/model/entities/`
 
 ```java
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    private final ProductRepository productRepository;
+@Entity
+@Table(name = "ingredientes_da_receita")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class IngredienteDaReceita {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     
-    @PersistenceContext
-    private EntityManager entityManager;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receita_id", nullable = false)
+    @JsonIgnore
+    private Receita receita;
     
-    public Product saveProduct(Product product) {
-        // Validações de campos obrigatórios
-        if (product.getNome() == null || product.getNome().isBlank()) {
-            throw new IllegalArgumentException("O nome do produto é obrigatório.");
-        }
-        if (product.getTipoControle() == null || product.getTipoControle().isBlank()) {
-            throw new IllegalArgumentException("O tipo de controle é obrigatório.");
-        }
-        if (product.getUnidadeMedida() == null || product.getUnidadeMedida().isBlank()) {
-            throw new IllegalArgumentException("A unidade de medida é obrigatória.");
-        }
-        return productRepository.save(product);
-    }
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "produto_id", nullable = false)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private Product produto;
     
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
-    }
+    @Column(name = "quantidade_necessaria", nullable = false)
+    private Double quantidadeNecessaria;
     
-    public void deleteProductById(Long id) {
-        productRepository.deleteById(id);
-    }
-    
-    public void deleteAllProductsAndResetId() {
-        productRepository.deleteAll();
-        entityManager.createNativeQuery("ALTER TABLE products AUTO_INCREMENT = 1").executeUpdate();
-    }
+    @Column(columnDefinition = "TEXT")
+    private String observacoes;
 }
 ```
 
-**Funcionalidades:**
-- **Validação**: Verifica campos obrigatórios (nome, tipoControle, unidadeMedida)
-- **Persistência**: Salva produtos no banco de dados
-- **Listagem**: Retorna todos os produtos cadastrados
-- **Exclusão**: Remove produtos por ID ou todos os produtos
-- **Reset de ID**: Reinicia o contador AUTO_INCREMENT após exclusão geral
+**Características**:
+- Relacionamento ManyToOne com Receita e Product
+- `@JsonIgnore` e `@JsonIgnoreProperties` para evitar loops na serialização
+- Permite deserialização parcial do Product (apenas ID ou nome)
 
-### 15. **ProductController.java** - API REST de Produtos
-**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/product/controller/`
+#### ReceitaRepository.java
+**Métodos Customizados**:
+- `findByNomeIgnoreCase(String nome)`: Busca por nome único
+- `existsByNomeIgnoreCase(String nome)`: Verifica existência
+- `findByNomeContainingIgnoreCase(String nome)`: Busca parcial
+- `findByIdComIngredientes(Long id)`: Busca com ingredientes carregados
+- `findAllComIngredientes()`: Lista todas com ingredientes
+
+#### ReceitaService.java
+**Funcionalidades**:
+- Validação de receita e ingredientes
+- Busca de produtos por ID ou nome (flexível)
+- Tratamento de produtos duplicados (lista IDs quando múltiplos encontrados)
+- Validação de nome único para receitas
+- Gerenciamento de relacionamentos com ingredientes
+
+#### ReceitaController.java
+**Endpoints**:
+- `POST /api/receitas/criar`: Cria nova receita
+- `GET /api/receitas/listar`: Lista todas as receitas com ingredientes
+- `GET /api/receitas/buscar/{id}`: Busca receita por ID
+- `GET /api/receitas/buscar?nome={nome}`: Busca receitas por nome
+- `PUT /api/receitas/atualizar/{id}`: Atualiza receita
+- `DELETE /api/receitas/excluir/{id}`: Remove receita
+
+### 5. Módulo de Produção (producao)
+
+#### Producao.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/producao/model/entities/`
 
 ```java
-@RestController
-@RequestMapping("/api/products")
-@RequiredArgsConstructor
-public class ProductController {
-    private final ProductService productService;
+@Entity
+@Table(name = "producoes")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Producao {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     
-    @PostMapping("/create")
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        Product savedProduct = productService.saveProduct(product);
-        return ResponseEntity.ok(savedProduct);
-    }
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "receita_id", nullable = false)
+    private Receita receita;
     
-    @GetMapping("/list")
-    public ResponseEntity<List<Product>> listProducts() {
-        List<Product> products = productService.getAllProducts();
-        return ResponseEntity.ok(products);
-    }
+    @Column(name = "quantidade_produzida", nullable = false)
+    private Integer quantidadeProduzida;
     
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        productService.deleteProductById(id);
-        return ResponseEntity.noContent().build();
-    }
+    @Column(name = "data_producao", nullable = false)
+    private LocalDateTime dataProducao;
     
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/delete/all-reset")
-    public ResponseEntity<Void> deleteAllProductsAndResetId() {
-        productService.deleteAllProductsAndResetId();
-        return ResponseEntity.noContent().build();
-    }
+    @Column(columnDefinition = "TEXT")
+    private String observacoes;
+    
+    @Column(name = "estoque_descontado", nullable = false)
+    @Builder.Default
+    private Boolean estoqueDescontado = false;
 }
 ```
 
-**Endpoints da API:**
+**Características**:
+- Relacionamento ManyToOne com Receita
+- Data de produção automática se não informada
+- Flag indicando se estoque foi descontado
 
-#### POST /api/products/create
-- **Função**: Cadastra novo produto/ingrediente
-- **Autenticação**: JWT Bearer Token obrigatório
-- **Content-Type**: application/json
-- **Corpo**:
+#### ProducaoRepository.java
+**Métodos Customizados**:
+- `findByReceitaId(Long receitaId)`: Busca produções por receita
+- `findByPeriodo(LocalDateTime inicio, LocalDateTime fim)`: Busca por período
+- `findTodasOrdenadasPorData()`: Lista ordenada por data (mais recente primeiro)
+
+#### ProducaoService.java
+**Funcionalidades**:
+- Cálculo automático de proporção de ingredientes
+- Validação de estoque antes de descontar
+- Desconto automático de estoque após validação
+- Cálculo proporcional baseado em `quantidadePadraoProduzida`
+- Transações garantidas (rollback em caso de erro)
+
+**Lógica de Cálculo**:
+```
+Fator de Proporção = Quantidade Produzida / Quantidade Padrão Produzida
+Quantidade Necessária = Quantidade Necessária Original × Fator de Proporção
+```
+
+#### ProducaoController.java
+**Endpoints**:
+- `POST /api/producoes/registrar`: Registra produção e desconta estoque
+- `GET /api/producoes/listar`: Lista todas as produções ordenadas
+- `GET /api/producoes/buscar/{id}`: Busca produção por ID
+- `GET /api/producoes/buscar-por-receita/{receitaId}`: Busca por receita
+
+### 6. Módulo de Configuração (config)
+
+#### SecurityConfiguration.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/config/`
+
+**Configurações**:
+- CSRF desabilitado para API REST
+- Endpoints públicos: `/api/auth/**` e `/error`
+- Autenticação JWT obrigatória para demais endpoints
+- Sessões stateless
+- Method security habilitado (`@PreAuthorize`)
+- UserDetailsService integrado com UserRepository
+- PasswordEncoder BCrypt
+
+#### GlobalExceptionHandler.java
+**Localização**: `src/main/java/CodingTechnology/SistemaDeGestao/config/`
+
+**Exceções Tratadas**:
+- `IllegalArgumentException`: Validações de negócio (400 Bad Request)
+- `HttpMessageNotReadableException`: Erros de parsing JSON (400 Bad Request)
+- `MethodArgumentNotValidException`: Validação de argumentos (400 Bad Request)
+- `AccessDeniedException`: Acesso negado (403 Forbidden)
+- `LazyInitializationException`: Erros de carregamento lazy (500 Internal Server Error)
+- `Exception`: Exceções genéricas (500 Internal Server Error)
+
+**Formato de Resposta de Erro**:
 ```json
 {
-  "nome": "Chocolate em pó",
-  "tipoControle": "PESO",
-  "unidadeMedida": "grama",
-  "quantidadeInicial": 1000.0,
-  "quantidadeAtual": 1000.0,
-  "precoCompra": 20.0,
-  "precoVenda": 0.0
+  "timestamp": "2025-11-29T03:12:17.879753351",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Mensagem de erro descritiva"
 }
 ```
-- **Respostas**:
-  - `200 OK`: Produto criado com sucesso (retorna o produto)
-  - `400 Bad Request`: Campos obrigatórios ausentes ou inválidos
-  - `401 Unauthorized`: Autenticação necessária
 
-#### GET /api/products/list
-- **Função**: Lista todos os produtos cadastrados
-- **Autenticação**: JWT Bearer Token obrigatório
-- **Resposta**: `200 OK` - Lista de produtos em JSON
+## Estrutura de Banco de Dados
 
-#### DELETE /api/products/delete/{id}
-- **Função**: Remove produto pelo ID
-- **Autenticação**: JWT Bearer Token obrigatório
-- **Parâmetros**: `id` (path variable)
-- **Respostas**:
-  - `204 No Content`: Produto removido com sucesso
-  - `404 Not Found`: Produto não encontrado
-  - `401 Unauthorized`: Autenticação necessária
+### Tabela `users`
+```sql
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL
+);
+```
 
-#### DELETE /api/products/delete/all-reset
-- **Função**: Remove todos os produtos e reinicia o contador de ID (apenas ADMIN)
-- **Autorização**: `@PreAuthorize("hasRole('ADMIN')")`
-- **Autenticação**: JWT Bearer Token obrigatório (apenas ADMIN)
-- **Respostas**:
-  - `204 No Content`: Todos os produtos removidos e ID resetado
-  - `403 Forbidden`: Acesso negado (não é ADMIN)
-  - `401 Unauthorized`: Autenticação necessária
+### Tabela `products`
+```sql
+CREATE TABLE products (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255),
+    tipo_controle VARCHAR(255),
+    unidade_medida VARCHAR(255),
+    quantidade_inicial DOUBLE,
+    quantidade_atual DOUBLE,
+    preco_compra DOUBLE,
+    preco_venda DOUBLE
+);
+```
+
+### Tabela `receitas`
+```sql
+CREATE TABLE receitas (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    quantidade_padrao_produzida INT,
+    data_criacao DATETIME NOT NULL,
+    data_atualizacao DATETIME
+);
+```
+
+### Tabela `ingredientes_da_receita`
+```sql
+CREATE TABLE ingredientes_da_receita (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    receita_id BIGINT NOT NULL,
+    produto_id BIGINT NOT NULL,
+    quantidade_necessaria DOUBLE NOT NULL,
+    observacoes TEXT,
+    FOREIGN KEY (receita_id) REFERENCES receitas(id) ON DELETE CASCADE,
+    FOREIGN KEY (produto_id) REFERENCES products(id)
+);
+```
+
+### Tabela `producoes`
+```sql
+CREATE TABLE producoes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    receita_id BIGINT NOT NULL,
+    quantidade_produzida INT NOT NULL,
+    data_producao DATETIME NOT NULL,
+    observacoes TEXT,
+    estoque_descontado BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (receita_id) REFERENCES receitas(id)
+);
+```
 
 ## Sistema de Autorização
 
-### Roles e Permissões
-O sistema implementa um sistema de autorização baseado em roles (RBAC - Role-Based Access Control):
-
-#### Roles Disponíveis:
+### Roles Disponíveis
 - **ADMIN**: Acesso total ao sistema
-- **RH**: Acesso limitado (futuras implementações)
-- **USER**: Acesso básico (futuras implementações)
+- **RH**: Acesso limitado
+- **USER**: Acesso básico
 
-#### Endpoints por Role:
+### Endpoints por Role
 
 | Endpoint | ADMIN | RH | USER | Público |
 |----------|-------|----|----- |---------|
 | POST /api/auth/login | ✅ | ✅ | ✅ | ✅ |
-| POST /api/users/create | ✅ | ❌ | ❌ | ❌ |
 | GET /api/users/listAll | ✅ | ✅ | ✅ | ❌ |
+| POST /api/users/create | ✅ | ❌ | ❌ | ❌ |
 | DELETE /api/users/delete/{username} | ✅ | ❌ | ❌ | ❌ |
 | POST /api/products/create | ✅ | ✅ | ✅ | ❌ |
 | GET /api/products/list | ✅ | ✅ | ✅ | ❌ |
 | DELETE /api/products/delete/{id} | ✅ | ✅ | ✅ | ❌ |
 | DELETE /api/products/delete/all-reset | ✅ | ❌ | ❌ | ❌ |
-
-### Anotação @PreAuthorize
-```java
-@PreAuthorize("hasRole('ADMIN')")
-@PostMapping("/create")
-public ResponseEntity<String> createUser(@RequestBody User user) {
-    // Apenas usuários com role ADMIN podem acessar
-}
-
-@PreAuthorize("hasRole('ADMIN')")
-@DeleteMapping("/delete/{username}")
-public ResponseEntity<String> deleteUser(@PathVariable String username) {
-    // Apenas usuários com role ADMIN podem acessar
-}
-```
-
-**Funcionalidades:**
-- **hasRole('ADMIN')**: Verifica se o usuário tem a role ADMIN
-- **hasRole('RH')**: Verifica se o usuário tem a role RH
-- **hasRole('USER')**: Verifica se o usuário tem a role USER
-- **hasAnyRole('ADMIN', 'RH')**: Verifica se o usuário tem qualquer uma das roles
-- **isAuthenticated()**: Verifica se o usuário está autenticado
+| POST /api/receitas/criar | ✅ | ✅ | ✅ | ❌ |
+| GET /api/receitas/listar | ✅ | ✅ | ✅ | ❌ |
+| PUT /api/receitas/atualizar/{id} | ✅ | ✅ | ✅ | ❌ |
+| DELETE /api/receitas/excluir/{id} | ✅ | ✅ | ✅ | ❌ |
+| POST /api/producoes/registrar | ✅ | ✅ | ✅ | ❌ |
+| GET /api/producoes/listar | ✅ | ✅ | ✅ | ❌ |
 
 ## Sistema JWT
 
-### Configuração JWT Atual
+### Configuração
 ```properties
-# JWT Configuration
 application.security.jwt.secret-key=404E635266556A586E32723575782F413F4428472B4B6250645367566B5970
-application.security.jwt.expiration=86400000 # 24 horas em milissegundos
+application.security.jwt.expiration=86400000  # 24 horas
 ```
 
-**Parâmetros JWT:**
-- **Chave Secreta**: Base64 encoded para HMAC-SHA256
-- **Expiração**: 24 horas (86400000 ms)
-- **Algoritmo**: HMAC-SHA256
-- **Claims**: Username, roles, issued at, expiration
-
-### Fluxo de Autenticação JWT
+### Fluxo de Autenticação
 ```
-1. Cliente envia credenciais para /api/auth/login
+1. Cliente → POST /api/auth/login (credenciais)
    ↓
 2. AuthenticationManager valida credenciais
    ↓
-3. JwtService gera token JWT com roles
+3. JwtService gera token com roles
    ↓
-4. Token é retornado ao cliente
+4. Token retornado ao cliente
    ↓
-5. Cliente usa token em requisições subsequentes
+5. Cliente → Requisições com Header: "Authorization: Bearer {token}"
    ↓
-6. JwtAuthFilter valida token automaticamente
+6. JwtAuthFilter intercepta e valida token
    ↓
-7. SecurityContext é configurado com autenticação
+7. SecurityContext configurado com autenticação
    ↓
-8. Endpoint é executado com autorizações apropriadas
+8. @PreAuthorize verifica permissões
+   ↓
+9. Endpoint executado
 ```
 
-### Segurança JWT
-- **Stateless**: Sem armazenamento de sessão no servidor
-- **Expiração**: Tokens expiram automaticamente
-- **Chave Secreta**: Configurável e segura
-- **Validação**: Verificação automática em cada requisição
-- **Claims**: Informações mínimas necessárias
-- **Roles**: Inclusão de roles no token para autorização
+### Claims do Token
+- **sub**: Username
+- **roles**: Lista de roles do usuário
+- **iat**: Data de emissão
+- **exp**: Data de expiração
 
-## Integração com Banco de Dados
+## Configurações de Banco de Dados
 
-### Configuração MySQL Atual
+### application.properties
 ```properties
-# Configurações do Servidor
+# Servidor
 server.port=8081
 
-# Configurações do MySQL
+# MySQL
 spring.datasource.url=jdbc:mysql://localhost:2311/erp_database?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 spring.datasource.username=admin
 spring.datasource.password=admin
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA/Hibernate
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
 
-# Configurações JWT
+# JWT
 application.security.jwt.secret-key=404E635266556A586E32723575782F413F4428472B4B6250645367566B5970
 application.security.jwt.expiration=86400000
-```
 
-**Parâmetros de Conexão:**
-- **Host**: localhost
-- **Porta**: 2311
-- **Database**: erp_database
-- **Usuário**: admin
-- **Senha**: admin
-- **DDL**: Auto-update (cria/atualiza tabelas automaticamente)
-- **SQL Logging**: Habilitado para desenvolvimento
-- **Timezone**: UTC configurado
-- **SSL**: Desabilitado para desenvolvimento
+# Logging
+logging.level.org.springframework.security=DEBUG
+```
 
 ### Docker Compose
 ```yaml
@@ -860,174 +637,208 @@ services:
       - ./data:/var/lib/mysql
 ```
 
-**Configurações do Container:**
-- **Imagem**: MySQL 8.0 oficial
-- **Restart**: Sempre
-- **Porta**: 2311 externa → 3306 interna
-- **Volumes**: Persistência em `./data`
+## Fluxos de Negócio
 
-## Estrutura de Dados
-
-### Tabela `users`
-```sql
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(255) NOT NULL
-);
+### Fluxo: Cadastro de Receita
+```
+1. Cliente → POST /api/receitas/criar
+   {
+     "nome": "Brownie Tradicional",
+     "quantidadePadraoProduzida": 12,
+     "ingredientes": [
+       {
+         "produto": { "id": 1 },
+         "quantidadeNecessaria": 500.0
+       }
+     ]
+   }
+   ↓
+2. ReceitaService.validaReceita()
+   ↓
+3. Para cada ingrediente:
+   - ReceitaService.validarIngrediente()
+   - Busca produto por ID ou nome
+   - Valida quantidade > 0
+   ↓
+4. ReceitaRepository.save()
+   ↓
+5. Retorna receita salva com ID
 ```
 
-**Índices:**
-- **PRIMARY KEY**: `id`
-- **UNIQUE**: `username`
-
-### Tabela `products`
-```sql
-CREATE TABLE products (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(255),
-    tipo_controle VARCHAR(255),
-    unidade_medida VARCHAR(255),
-    quantidade_inicial DOUBLE,
-    quantidade_atual DOUBLE,
-    preco_compra DOUBLE,
-    preco_venda DOUBLE
-);
+### Fluxo: Registro de Produção
+```
+1. Cliente → POST /api/producoes/registrar
+   {
+     "receita": { "id": 1 },
+     "quantidadeProduzida": 24
+   }
+   ↓
+2. ProducaoService.registrarProducao()
+   ↓
+3. Busca receita com ingredientes
+   ↓
+4. Calcula fator de proporção:
+   fator = 24 / 12 = 2.0
+   ↓
+5. Para cada ingrediente:
+   - Calcula quantidade necessária:
+     quantidade = 500.0 × 2.0 = 1000.0
+   - Valida estoque disponível
+   ↓
+6. Se estoque suficiente:
+   - Desconta estoque de cada produto
+   - Salva produção com estoqueDescontado = true
+   ↓
+7. Retorna produção registrada
 ```
 
-**Índices:**
-- **PRIMARY KEY**: `id`
-- **Campos**: Nome, tipo de controle, unidade de medida, quantidades e preços
-
-### Dados Iniciais
-```sql
-INSERT INTO users (username, password, role) VALUES 
-('UserAdmin', '$2a$10$...', 'ADMIN');
+### Fluxo: Tratamento de Erros
+```
+1. Exceção lançada em qualquer camada
+   ↓
+2. GlobalExceptionHandler intercepta
+   ↓
+3. Identifica tipo de exceção
+   ↓
+4. Cria resposta JSON padronizada:
+   {
+     "timestamp": "...",
+     "status": 400/403/500,
+     "error": "...",
+     "message": "..."
+   }
+   ↓
+5. Log do erro para diagnóstico
+   ↓
+6. Retorna resposta HTTP apropriada
 ```
 
-## Fluxo de Autenticação e Autorização
+## Segurança Implementada
 
-```
-1. Cliente faz requisição com token JWT
-   ↓
-2. JwtAuthFilter intercepta
-   ↓
-3. JwtService valida token
-   ↓
-4. CustomUserDetailsService carrega usuário
-   ↓
-5. Authorities são criadas baseadas no role
-   ↓
-6. @PreAuthorize verifica permissões
-   ↓
-7. Acesso é concedido/negado
-```
+### ✅ Implementado
+- Criptografia BCrypt para senhas
+- Autenticação JWT com expiração
+- Autorização baseada em roles
+- Validação de entrada
+- Tratamento centralizado de exceções
+- Logs de segurança
+- Sessões stateless
+- Filtro de autenticação JWT
+- Method-level security com @PreAuthorize
+- Endpoints públicos protegidos
+
+### 🔒 Recomendações Futuras
+- Refresh tokens
+- Rate limiting
+- Validação com Bean Validation (@Valid)
+- Logs de auditoria
+- HTTPS em produção
+- Sistema de permissões mais granular
+- MFA (Multi-Factor Authentication)
+- Blacklist de tokens revogados
+- Validação de força de senha
+
+## Performance e Otimizações
+
+### Implementado
+- Connection Pool HikariCP (padrão Spring Boot)
+- Lazy Loading em relacionamentos JPA
+- Eager Loading quando necessário
+- Índices em campos únicos (username)
+- Cache de autoridades no Spring Security
+- Validação JWT local (sem consulta ao banco)
+- Sessões stateless (sem armazenamento)
+
+### Consultas Otimizadas
+- `findAllComIngredientes()`: Usa JOIN FETCH para evitar N+1
+- `findByIdComIngredientes()`: Carrega relacionamentos necessários
+- Transações declarativas com `@Transactional`
 
 ## Logs e Monitoramento
 
-### Logs de Desenvolvimento
-- **SQL**: Habilitado (`spring.jpa.show-sql=true`)
-- **Hibernate**: DDL automático
-- **Spring Boot**: Logs padrão
-- **Spring Security**: Logs de autenticação e autorização
-- **JWT**: Logs de validação de tokens
-- **AuthController**: Logs de tentativas de login
+### Logs Configurados
+- SQL: Habilitado para desenvolvimento (`show-sql=true`)
+- Spring Security: DEBUG para autenticação
+- ReceitaController: DEBUG para criação de receitas
+- GlobalExceptionHandler: WARN/ERROR para exceções
+- JwtAuthFilter: INFO/DEBUG para autenticação
 
 ### Pontos de Monitoramento
-- **Registro de Usuários**: Logs de criação
-- **Autenticação JWT**: Sucessos e falhas
-- **Autorização**: Acessos negados por role
-- **Banco de Dados**: Queries executadas
-- **Tokens JWT**: Geração e validação
+- Autenticação JWT (sucessos e falhas)
+- Autorização (acessos negados)
+- Operações de estoque (descontos)
+- Validações de negócio
+- Erros de banco de dados
 
 ## Testes
 
 ### Endpoints para Teste
+
+#### Autenticação
 ```bash
-# Autenticação JWT
 curl -X POST http://localhost:8081/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"UserAdmin","password":"Master@123"}'
-
-# Criação de usuário (admin)
-curl -X POST http://localhost:8081/api/users/create \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <JWT_TOKEN>" \
-  -d '{"username":"Usuarioteste","password":"senhaDoRh1234","role":"RH"}'
-
-# Listar usuários (JWT)
-curl -H "Authorization: Bearer <JWT_TOKEN>" \
-  http://localhost:8081/api/users/listAll
-
-# Excluir usuário (admin)
-curl -X DELETE \
-  -H "Authorization: Bearer <JWT_TOKEN>" \
-  http://localhost:8081/api/users/delete/Usuarioteste
 ```
 
-### Testes de Autorização
+#### Criar Produto
 ```bash
-# Tentativa de criar usuário sem ser ADMIN
-curl -X POST http://localhost:8081/api/users/create \
+curl -X POST http://localhost:8081/api/products/create \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <USER_JWT_TOKEN>" \
-  -d '{"username":"teste","password":"123456","role":"USER"}'
-# Resposta esperada: 403 Forbidden
-
-# Tentativa de excluir usuário sem ser ADMIN
-curl -X DELETE \
-  -H "Authorization: Bearer <USER_JWT_TOKEN>" \
-  http://localhost:8081/api/users/delete/teste
-# Resposta esperada: 403 Forbidden
+  -H "Authorization: Bearer {token}" \
+  -d '{
+    "nome": "Chocolate em pó",
+    "tipoControle": "PESO",
+    "unidadeMedida": "grama",
+    "quantidadeInicial": 2000.0,
+    "quantidadeAtual": 2000.0,
+    "precoCompra": 20.0
+  }'
 ```
 
-## Considerações de Segurança
+#### Criar Receita
+```bash
+curl -X POST http://localhost:8081/api/receitas/criar \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {token}" \
+  -d '{
+    "nome": "Brownie Tradicional",
+    "descricao": "Brownie de chocolate tradicional",
+    "quantidadePadraoProduzida": 12,
+    "ingredientes": [
+      {
+        "produto": { "id": 1 },
+        "quantidadeNecessaria": 500.0
+      }
+    ]
+  }'
+```
 
-### Implementadas
-- ✅ Criptografia BCrypt para senhas
-- ✅ Autenticação JWT
-- ✅ Autorização baseada em roles
-- ✅ Validação de username único
-- ✅ Endpoints protegidos
-- ✅ Method-level security com @PreAuthorize
-- ✅ Separação de responsabilidades (create vs delete)
-- ✅ Sessões stateless
-- ✅ Tokens JWT com expiração
-- ✅ Filtro de autenticação JWT
-- ✅ Logs de autenticação
+#### Registrar Produção
+```bash
+curl -X POST http://localhost:8081/api/producoes/registrar \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {token}" \
+  -d '{
+    "receita": { "id": 1 },
+    "quantidadeProduzida": 24,
+    "observacoes": "Produção de teste"
+  }'
+```
 
-### Recomendações Futuras
-- 🔒 Refresh tokens
-- 🔒 Rate limiting
-- 🔒 Validação de entrada com Bean Validation
-- 🔒 Logs de auditoria
-- 🔒 HTTPS em produção
-- 🔒 Sistema de permissões mais granular
-- 🔒 MFA (Multi-Factor Authentication)
-- 🔒 Blacklist de tokens revogados
-- 🔒 Validação de força de senha
+## Dados Iniciais
 
-## Performance
+### Usuário Administrador Padrão
+Na primeira execução, o sistema cria automaticamente:
+- **Username**: `UserAdmin`
+- **Password**: `Master@123`
+- **Role**: `ADMIN`
 
-### Otimizações Atuais
-- **Connection Pool**: HikariCP (padrão Spring Boot)
-- **Lazy Loading**: JPA/Hibernate
-- **Índices**: Username único
-- **Method Security**: Cache de autoridades
-- **JWT**: Validação local (sem consulta ao banco)
-- **Sessões**: Stateless (sem armazenamento de estado)
-
-### Monitoramento
-- **Queries**: Logs habilitados
-- **Tempo de Resposta**: Logs do Spring Boot
-- **Memória**: JVM padrão
-- **Autorização**: Logs de decisões de acesso
-- **JWT**: Tempo de validação
+**Localização**: `GestaoApplication.java` (CommandLineRunner)
 
 ## Deploy e Produção
 
-### Configurações de Produção
+### Configurações Recomendadas
 ```properties
 # application-prod.properties
 spring.jpa.show-sql=false
@@ -1048,63 +859,32 @@ export JWT_SECRET_KEY=your-secure-jwt-secret-key
 export JWT_EXPIRATION=86400000
 ```
 
-## Novas Funcionalidades Implementadas
+## Considerações Técnicas Importantes
 
-### Sistema JWT Completo
-- **AuthController**: Endpoint de login JWT com logs
-- **JwtService**: Geração e validação de tokens com roles
-- **JwtAuthFilter**: Filtro de autenticação automática
-- **Configuração**: Chave secreta e expiração configuráveis
-- **Segurança**: Sessões stateless
+### Serialização JSON
+- `@JsonIgnore` em relacionamentos bidirecionais para evitar loops
+- `@JsonIgnoreProperties(ignoreUnknown = true)` para deserialização flexível
+- Permite buscar produtos por ID ou nome na criação de receitas
 
-### Endpoint POST /api/users/create
-- **Propósito**: Criação de usuários por administradores
-- **Segurança**: Restrito apenas para usuários com role ADMIN
-- **Autenticação**: JWT Bearer Token obrigatório
-- **Uso**: Para administradores criarem novos usuários no sistema
+### Transações
+- `@Transactional` em operações que modificam múltiplas entidades
+- Rollback automático em caso de erro
+- Garantia de consistência de dados
 
-### Endpoint DELETE /api/users/delete/{username}
-- **Propósito**: Exclusão de usuários por administradores
-- **Segurança**: Restrito apenas para usuários com role ADMIN
-- **Autenticação**: JWT Bearer Token obrigatório
-- **Parâmetros**: Username do usuário a ser removido
-- **Uso**: Para administradores removerem usuários do sistema
+### Validações
+- Validação de estoque antes de descontar
+- Validação de produtos duplicados (retorna IDs quando múltiplos)
+- Validação de campos obrigatórios em todas as camadas
 
-### Sistema de Autorização Aprimorado
-- **@PreAuthorize**: Anotação para controle granular de acesso
-- **Method Security**: Segurança em nível de método
-- **Role-based Access**: Controle baseado em roles
-- **Transações**: Gerenciamento de transações com @Transactional
-
-### Modelo User Simplificado
-- **Campo username**: Campo único para identificação
-- **Validação**: Username único no sistema
-- **Simplificação**: Removido campo email para focar em username
-- **Repository**: Métodos atualizados para usar username com Optional
-
-### Dependências JWT
-- **jjwt-api**: API JWT para geração e validação
-- **jjwt-impl**: Implementação JWT
-- **jjwt-jackson**: Serialização/deserialização JWT
-
-## Status do Sistema JWT
-
-**✅ IMPLEMENTADO E FUNCIONAL**: O sistema JWT está implementado e testado. As funcionalidades incluem:
-
-- ✅ Geração de tokens JWT com roles
-- ✅ Validação de tokens JWT
-- ✅ Filtro de autenticação JWT
-- ✅ Configuração de segurança JWT
-- ✅ Endpoint de login JWT com logs
-- ✅ Configuração de beans de autenticação
-- ✅ DTO para requisições de autenticação
-- ✅ Testes de integração
-- ✅ Validação de cenários de erro
-- ✅ Testes de segurança
-- ✅ Testes de performance
+### Tratamento de Erros
+- Mensagens descritivas e informativas
+- Logs detalhados para diagnóstico
+- Códigos HTTP apropriados (400, 403, 404, 500)
+- Respostas JSON padronizadas
 
 ---
 
 **Autor**: ThiagoMartins2001  
-**Versão**: 2.0  
-**Data**: Dezembro 2024
+**Versão**: 3.0  
+**Data**: Novembro 2025  
+**Status**: Sistema 100% Funcional

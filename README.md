@@ -87,6 +87,30 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 └── GestaoApplication.java         # Classe principal da aplicação
 ```
 
+### Estrutura de Pastas (raiz)
+
+```
+SistemaDeGestao/
+├── SistemaDeGestao-Backend/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/CodingTechnology/SistemaDeGestao/...
+│   │   │   └── resources/application.properties
+│   │   └── test/java/CodingTechnology/ERP/ErpApplicationTests.java
+│   ├── docker-compose.yml
+│   ├── Dockerfile
+│   ├── pom.xml
+│   ├── mvnw / mvnw.cmd
+│   ├── .gitignore
+│   └── data/
+└── README.md
+```
+
+## Documentação Relacionada
+
+- Guia de API: `SistemaDeGestao-Backend/API_DOCUMENTATION.md`
+- Documentação técnica: `SistemaDeGestao-Backend/DOCUMENTACAO_TECNICA.md`
+
 ## Funcionalidades Implementadas
 
 ### 1. **Sistema de Autenticação JWT**
