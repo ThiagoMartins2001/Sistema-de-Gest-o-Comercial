@@ -5,9 +5,11 @@ import org.springframework.stereotype.Repository;
 
 import CodingTechnology.SistemaDeGestao.Produtos.model.entities.Product;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByNomeIgnoreCase(String nome);
+    List<Product> findAllByNomeIgnoreCase(String nome);
 }

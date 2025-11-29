@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -99,39 +100,51 @@ public class ReceitaService {
         }
     }
 
-    // Valida um ingrediente da receita - aceita ID ou nome do produto
     private void validarIngrediente(IngredienteDaReceita ingrediente) {
         Product produto = null;
 
         if (ingrediente.getProduto() == null) {
-            throw new IllegalArgumentException("O produto do ingrediente é obrigatório. Informe o ID ou o nome do produto.");
+            throw new IllegalArgumentException(
+                    "O produto do ingrediente é obrigatório. Informe o ID ou o nome do produto.");
         }
 
-        // Tenta buscar por ID primeiro (se fornecido)
         if (ingrediente.getProduto().getId() != null) {
             produto = productRepository.findById(ingrediente.getProduto().getId())
                     .orElse(null);
         }
 
-        // Se não encontrou por ID, tenta buscar por nome (se fornecido)
-        if (produto == null && ingrediente.getProduto().getNome() != null && !ingrediente.getProduto().getNome().isBlank()) {
-            produto = productRepository.findByNomeIgnoreCase(ingrediente.getProduto().getNome())
-                    .orElse(null);
+        if (produto == null && ingrediente.getProduto().getNome() != null
+                && !ingrediente.getProduto().getNome().isBlank()) {
+            List<Product> produtosEncontrados = productRepository
+                    .findAllByNomeIgnoreCase(ingrediente.getProduto().getNome());
+
+            if (produtosEncontrados.isEmpty()) {
+                produto = null;
+            } else if (produtosEncontrados.size() == 1) {
+                produto = produtosEncontrados.get(0);
+            } else {
+                throw new IllegalArgumentException(
+                        String.format(
+                                "Encontrados %d produtos com o nome '%s'. Por favor, use o ID do produto para identificar corretamente. IDs encontrados: %s",
+                                produtosEncontrados.size(),
+                                ingrediente.getProduto().getNome(),
+                                produtosEncontrados.stream()
+                                        .map(p -> p.getId().toString())
+                                        .collect(Collectors.joining(", "))));
+            }
         }
 
-        // Se ainda não encontrou, lança erro informativo
         if (produto == null) {
             String identificador = ingrediente.getProduto().getId() != null
                     ? "ID: " + ingrediente.getProduto().getId()
                     : "nome: " + ingrediente.getProduto().getNome();
             throw new IllegalArgumentException(
-                    "Produto não encontrado com " + identificador + ". Verifique se o produto existe na lista de produtos cadastrados.");
+                    "Produto não encontrado com " + identificador
+                            + ". Verifique se o produto existe na lista de produtos cadastrados.");
         }
 
-        // Atribui o produto encontrado ao ingrediente
         ingrediente.setProduto(produto);
 
-        // Valida quantidade
         if (ingrediente.getQuantidadeNecessaria() == null || ingrediente.getQuantidadeNecessaria() <= 0) {
             throw new IllegalArgumentException("A quantidade necessária do ingrediente deve ser maior que zero.");
         }
