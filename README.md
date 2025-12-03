@@ -98,7 +98,7 @@ SistemaDeGestao/
 │   │   │   └── resources/application.properties
 │   │   └── test/java/CodingTechnology/ERP/ErpApplicationTests.java
 │   ├── docker-compose.yml
-│   ├── Dockerfile
+│   ├── dockerfile
 │   ├── pom.xml
 │   ├── mvnw / mvnw.cmd
 │   ├── .gitignore
@@ -110,6 +110,40 @@ SistemaDeGestao/
 
 - Guia de API: `SistemaDeGestao-Backend/API_DOCUMENTATION.md`
 - Documentação técnica: `SistemaDeGestao-Backend/DOCUMENTACAO_TECNICA.md`
+
+## Autenticação e Perfil
+
+### GET /api/auth/me
+
+Retorna informações do usuário autenticado.
+
+**Headers:**
+
+```
+Authorization: Bearer <seu-token-jwt>
+```
+
+**Resposta (200):**
+
+```json
+{
+  "authenticated": true,
+  "username": "UserAdmin",
+  "authorities": ["ROLE_ADMIN"],
+  "principal": "User"
+}
+```
+
+## Execução com Docker Compose
+
+- O serviço `app` utiliza variáveis de ambiente para sobrescrever `spring.datasource.*` apontando para o host `db` do Compose.
+- Verifique o nome do arquivo de build: no backend o arquivo é `dockerfile` (minúsculo).
+- Em ambientes Linux/macOS, certifique-se de que o caminho e o nome do arquivo no Compose correspondem exatamente ao arquivo físico.
+
+## Maven Wrapper
+
+- Windows: `mvnw.cmd spring-boot:run`
+- Linux/macOS: `./mvnw spring-boot:run`
 
 ## Funcionalidades Implementadas
 
