@@ -56,15 +56,15 @@ public class ProducaoService {
 
         double fatorProporcao = (double) quantidadeProduzida / receita.getQuantidadePadraoProduzida();
         Map<Long, Double> quantidadesNecessarias = new HashMap<>();
-        
+
         for (IngredienteDaReceita ingrediente : receita.getIngredientes()) {
             double quantidadeNecessaria = ingrediente.getQuantidadeNecessaria() * fatorProporcao;
             quantidadesNecessarias.put(ingrediente.getProduto().getId(), quantidadeNecessaria);
-            
+
             var produto = productService.getProductById(ingrediente.getProduto().getId())
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Produto não encontrado: " + ingrediente.getProduto().getNome()));
-            
+
             if (produto.getQuantidadeAtual() == null || produto.getQuantidadeAtual() < quantidadeNecessaria) {
                 throw new IllegalArgumentException(
                         String.format("Estoque insuficiente de %s. Disponível: %.2f %s, Necessário: %.2f %s",
