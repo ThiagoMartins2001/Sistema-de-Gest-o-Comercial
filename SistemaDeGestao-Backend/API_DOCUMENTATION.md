@@ -121,6 +121,7 @@ Authorization: Bearer <JWT_TOKEN>
 ```json
 {
   "username": "Usuarioteste",
+  "email": "usuario@teste.com",
   "password": "senhaDoRh1234",
   "role": "RH"
 }
@@ -649,6 +650,41 @@ Authorization: Bearer <JWT_TOKEN>
 curl -X DELETE \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
   http://localhost:8081/api/products/delete/all-reset
+```
+
+---
+
+### 9. Gerenciamento de Banco de Dados (Admin)
+
+#### DELETE /api/db/reset
+Zera completamente o banco de dados (TRUNCATE em todas as tabelas). Útil para testes ou reinicialização do sistema.
+
+**URL**: `http://localhost:8081/api/db/reset`
+
+**Método**: `DELETE`
+
+**Autenticação**: Obrigatória (apenas ADMIN)
+
+**Headers**:
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Respostas**:
+
+**Sucesso (204 No Content)**:
+```
+(Resposta vazia)
+```
+
+**Erro - Acesso negado (403 Forbidden)**:
+```json
+{
+  "timestamp": "2024-01-01T12:00:00.000+00:00",
+  "status": 403,
+  "error": "Forbidden",
+  "message": "Access Denied"
+}
 ```
 
 ---

@@ -45,6 +45,7 @@ src/main/java/CodingTechnology/SistemaDeGestao/
 │   ├── repository/                # Repositórios de receitas
 │   └── service/                   # Serviços de receitas
 ├── producao/                      # Módulo de produção
+├── db/                            # Módulo de gerenciamento de banco (Reset)
 ├── config/                        # Configurações da aplicação
 └── GestaoApplication.java         # Classe principal da aplicação
 ```
@@ -188,6 +189,10 @@ Retorna informações do usuário autenticado.
 - **GET /api/producoes/listar**: Lista produções.
 - **GET /api/producoes/buscar/{id}**: Busca produção por ID.
 - **GET /api/producoes/buscar-por-receita/{receitaId}**: Busca produções de uma receita.
+
+### Gerenciamento de Banco de Dados
+
+- **DELETE /api/db/reset**: Zera todas as tabelas do banco de dados (ADMIN).
 
 ## Fluxo de Uso do Sistema (Exemplos Técnicos)
 
