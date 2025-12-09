@@ -28,6 +28,7 @@ public class User implements UserDetails {
     private String username;
 
     @Column(nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String password;
 
     @Column(nullable = false)

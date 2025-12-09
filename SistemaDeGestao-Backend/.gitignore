@@ -31,6 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+application.properties
 
 ### Database Files ###
 data/
@@ -51,3 +52,6 @@ logs/
 ### Temporary Files ###
 *.tmp
 *.temp
+
+### Database Management Module (Dev Only) ###
+src/main/java/CodingTechnology/SistemaDeGestao/db/

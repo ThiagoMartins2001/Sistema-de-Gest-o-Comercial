@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import CodingTechnology.SistemaDeGestao.Produtos.model.entities.Product;
 import CodingTechnology.SistemaDeGestao.Produtos.service.ProductService;
+import CodingTechnology.SistemaDeGestao.Produtos.DTO.CreateProductDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,7 +21,16 @@ public class ProductController {
 
     // Cadastra um novo produto
     @PostMapping("/create")
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+    public ResponseEntity<Product> createProduct(@RequestBody CreateProductDTO data) {
+        Product product = new Product();
+        product.setNome(data.getNome());
+        product.setTipoControle(data.getTipoControle());
+        product.setUnidadeMedida(data.getUnidadeMedida());
+        product.setQuantidadeInicial(data.getQuantidadeInicial());
+        product.setQuantidadeAtual(data.getQuantidadeAtual());
+        product.setPrecoCompra(data.getPrecoCompra());
+        product.setPrecoVenda(data.getPrecoVenda());
+
         Product savedProduct = productService.saveProduct(product);
         return ResponseEntity.ok(savedProduct);
     }

@@ -33,10 +33,15 @@ public class UserController {
     // Cria um novo usuário (apenas ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
-    public ResponseEntity<String> createUser(@RequestBody User user) {
-        if (userService.findByUsername(user.getUsername()).isPresent()) {
+    public ResponseEntity<String> createUser(
+            @RequestBody CodingTechnology.SistemaDeGestao.user.DTO.RegisterUserDTO data) {
+        if (userService.findByUsername(data.getUsername()).isPresent()) {
             return new ResponseEntity<>("Name already in use:", HttpStatus.CONFLICT);
         }
+        User user = new User();
+        user.setUsername(data.getUsername());
+        user.setPassword(data.getPassword());
+        user.setRole(data.getRole());
         userService.saveUser(user);
         return new ResponseEntity<>("User created successfully:", HttpStatus.CREATED);
     }
