@@ -17,12 +17,20 @@ O sistema atua como o "cérebro" das operações, gerenciando desde a entrada de
 
 ## 🚀 Funcionalidades Principais
 
-O sistema oferece um conjunto completo de ferramentas para gestão operacional:
+O sistema é composto por duas grandes partes:
+
+### Frontend (Novo! 🎨)
+Desenvolvido em **Next.js 14** e **Tailwind CSS**, oferece uma interface moderna e responsiva.
+- **Dashboard Interativo**: Visão geral do sistema.
+- **Gestão Visual**: Tabelas e formulários intuitivos para produtos e receitas.
+- **Autenticação**: Interface segura de login.
+
+### Backend (Core ⚙️)
+API robusta em **Spring Boot** que gerencia toda a lógica de negócios.
 
 ### 1. Gestão de Estoque Inteligente
 - Controle de produtos por **Quantidade**, **Peso** (kg/g) ou **Volume** (l/ml).
 - Monitoramento de preços de compra e venda.
-- Alertas visuais (futuro) para níveis críticos de estoque.
 
 ### 2. Engenharia de Cardápio e Receitas
 - Cadastro detalhado de receitas.
@@ -35,24 +43,48 @@ O sistema oferece um conjunto completo de ferramentas para gestão operacional:
 - Histórico completo de todas as produções realizadas.
 
 ### 4. Segurança e Acesso
-- Login seguro com criptografia.
-- Perfis de acesso diferenciados para proteger dados sensíveis.
-- Autenticação via Tokens para maior segurança nas operações.
+- Login seguro com criptografia e JWT.
+- Perfis de acesso diferenciados (Admin, User).
+
+## 🐳 Como Rodar o Projeto (Docker)
+
+A maneira mais fácil de iniciar o sistema completo (Frontend + Backend + Banco de Dados) é usando o Docker.
+
+### Pré-requisitos
+- Docker e Docker Compose instalados.
+
+### Passo a Passo
+
+1. **Clone o repositório**:
+   ```bash
+   git clone <url-do-repositorio>
+   cd SistemaDeGestao
+   ```
+
+2. **Inicie os serviços**:
+   Isso fará o build do Frontend e Backend e iniciará o banco de dados.
+   ```bash
+   docker-compose up --build -d
+   ```
+
+3. **Acesse o Sistema**:
+   - **Frontend**: [http://localhost:3000](http://localhost:3000)
+   - **Backend API**: [http://localhost:8081](http://localhost:8081)
 
 ## 📚 Documentação Técnica
 
 Este arquivo README foca no propósito e nas funcionalidades do negócio. Se você é um desenvolvedor e procura informações sobre:
 
-- Instalação e Configuração (Docker, Maven)
+- Instalação Manual
 - Endpoints da API e Exemplos JSON
-- Estrutura de Pastas e Arquitetura
+- Estrutura de Pastas (Frontend e Backend)
 - Detalhes sobre o Banco de Dados
 
 Por favor, consulte nossa **[Documentação Técnica Detalhada](DOCUMENTACAO_TECNICA.md)**.
 
 ## 🔮 O Que Vem Por Aí? (Roadmap)
 
-Estamos constantemente melhorando o sistema. As próximas atualizações focam em expandir a capacidade analítica da plataforma:
+Estamos constantemente melhorando o sistema. As próximas atualizações focam em:
 
 - **Controle de Vendas**: Módulo completo de PDV.
 - **Dashboard Gerencial**: Gráficos e indicadores de desempenho.

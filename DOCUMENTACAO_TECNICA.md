@@ -4,141 +4,105 @@ Este documento contém os detalhes técnicos, guias de instalação, configuraç
 
 ## Tecnologias Utilizadas
 
-- **Java 21**
-- **Spring Boot 3.3.0**
-- **Spring Security**
-- **Spring Data JPA**
-- **MySQL 8.0**
-- **Docker & Docker Compose**
-- **Maven**
-- **Lombok**
-- **JWT (JSON Web Tokens)**
-- **BCrypt** (Criptografia de senhas)
-- **Jackson** (Serialização JSON)
+### Backend
+- **Java 21**, **Spring Boot 3.3.0**
+- **Spring Security**, **JWT**
+- **Spring Data JPA**, **MySQL 8.0**
+- **Docker**, **Maven**, **Lombok**
+
+### Frontend
+- **Next.js 14** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Axios** (Integração API)
+- **Lucide React** (Ícones)
 
 ## Estrutura do Projeto
 
-### Organização Modular
-
-O projeto foi organizado seguindo princípios de separação de responsabilidades e arquitetura modular:
+O projeto agora é um **monorepo** contendo frontend e backend:
 
 ```
+SistemaDeGestao/
+├── SistemaDeGestao-Backend/       # Código Fonte da API (Spring Boot)
+│   ├── src/                       # Controllers, Services, Models
+│   ├── Dockerfile                 # Configuração de Build do Backend
+│   └── pom.xml                    # Dependências Maven
+├── SistemaDeGestao-Frontend/      # Código Fonte da Interface (Next.js)
+│   ├── src/                       # Components, Pages, Hooks
+│   ├── Dockerfile                 # Configuração de Build do Frontend
+│   └── package.json               # Dependências NPM
+├── docker-compose.yml             # Orquestração Geral (Front + Back + DB)
+└── README.md                      # Documentação Geral
+```
+
+### Detalhes do Backend (Modular)
+```
 src/main/java/CodingTechnology/SistemaDeGestao/
-├── auth/                          # Módulo de autenticação
-│   ├── controller/                # Controladores de autenticação
-│   ├── DTO/                       # DTOs de autenticação
-│   ├── security/                  # Componentes de segurança
-│   └── service/                   # Serviços de autenticação
-├── user/                          # Módulo de usuários
-│   ├── controller/                # Controladores de usuário
-│   ├── model/                     # Entidades de usuário
-│   ├── repository/                # Repositórios de usuário
-│   └── service/                   # Serviços de usuário
-├── Produtos/                      # Módulo de produtos/ingredientes
-│   ├── controller/                # Controladores de produtos
-│   ├── model/                     # Entidades de produtos
-│   ├── repository/                # Repositórios de produtos
-│   └── service/                   # Serviços de produtos
-├── receita/                       # Módulo de receitas
-│   ├── controller/                # Controladores de receitas
-│   ├── model/                     # Entidades de receitas
-│   ├── repository/                # Repositórios de receitas
-│   └── service/                   # Serviços de receitas
-├── producao/                      # Módulo de produção
-├── db/                            # Módulo de gerenciamento de banco (Reset)
-├── config/                        # Configurações da aplicação
-└── GestaoApplication.java         # Classe principal da aplicação
+├── auth/                          # Autenticação e Segurança
+├── user/                          # Gestão de Usuários
+├── Produtos/                      # Estoque e Ingredientes
+├── receita/                       # Engenharia de Cardápio
+├── producao/                      # Controle de Produção
+├── config/                        # Configurações (CORS, Swagger)
+└── GestaoApplication.java         # Entrypoint
 ```
 
 ## Configuração e Instalação
 
 ### Pré-requisitos
+- Docker Desktop e Docker Compose
+- (Opcional) Java 21 e Node.js 20 para desenvolvimento local sem Docker
 
-- Java 21
-- Maven 3.6+
-- Docker e Docker Compose
-- MySQL 8.0 (via Docker)
+### 1. Início Rápido (Recomendado)
 
-### 1. Clonar o Repositório
+O projeto usa `docker-compose` na raiz para subir todo o ambiente.
 
 ```bash
+# Clone e entre na pasta
 git clone <url-do-repositorio>
 cd SistemaDeGestao
+
+# Suba os containers (build automático)
+docker-compose up --build -d
 ```
 
-### 2. Configuração do Banco de Dados com Docker
+Acesse:
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend**: [http://localhost:8081](http://localhost:8081)
 
-#### Iniciando o Container MySQL
+### 2. Desenvolvimento Local (Híbrido)
 
+Se quiser rodar o Frontend localmente e o Backend no Docker (ou vice-versa):
+
+#### Frontend Local
 ```bash
-# Navegue até a pasta do backend
-cd SistemaDeGestao-Backend
-
-# Inicie o container
-docker compose up -d
+cd SistemaDeGestao-Frontend
+npm install
+npm run dev
+# Acesse http://localhost:3000
 ```
+*Nota: O Frontend espera o Backend na porta 8081.*
 
-Detalhes do ambiente Docker:
-- Container MySQL 8.0
-- Banco de dados: `erp_database`
-- Porta mapeada: 2311 -> 3306
-- Persistência de dados: `./data`
-
-#### Verificando status
-
-```bash
-docker ps
-```
-
-### 3. Executando a Aplicação
-
-#### Via Maven
-
+#### Backend Local
 ```bash
 cd SistemaDeGestao-Backend
+# Certifique-se que o MySQL está rodando (via Docker ou local)
 mvn spring-boot:run
 ```
 
-#### Via JAR
+## Configurações do Ambiente
 
-```bash
-cd SistemaDeGestao-Backend
-mvn clean package
-java -jar target/ERP-0.0.1-SNAPSHOT.jar
+### Variáveis de Ambiente (Frontend)
+Arquivo: `.env.local`
 ```
-> **Nota**: O nome do arquivo JAR pode variar dependendo do `artifactId` no `pom.xml`.
+NEXT_PUBLIC_API_URL=http://localhost:8081/api
+```
 
-A aplicação estará disponível em: `http://localhost:8081`
-
-### Maven Wrapper
-- Windows: `mvnw.cmd spring-boot:run`
-- Linux/macOS: `./mvnw spring-boot:run`
-
-## Configuração do Usuário Administrador
-
-⚠️ **IMPORTANTE**: Na primeira execução, o sistema cria automaticamente um usuário administrador:
-
-- **Username**: `UserAdmin`
-- **Password**: `Master@123`
-- **Role**: `ADMIN`
-
-### Alterando as Credenciais do Administrador
-
-Para alterar as credenciais antes da primeira execução, edite o arquivo `src/main/java/CodingTechnology/SistemaDeGestao/GestaoApplication.java` nas linhas correspondentes à criação do usuário master.
-
-## Configurações do Sistema
-
-### Banco de Dados
-- **Host**: localhost:2311
-- **Database**: erp_database
-- **Username**: admin
-- **Password**: admin
-- **Root Password**: Mudar123
-
-### Aplicação
-- **Porta**: 8081
-- **JWT Secret**: Configurado em `application.properties`
-- **JWT Expiration**: 24 horas
+### Configurações do Backend
+- **Porta API**: 8081
+- **Banco de Dados**: MySQL (Porta 2311 externa / 3306 interna)
+- **Segurança**: JWT com expiração de 24h
+- **CORS**: Habilitado para `http://localhost:3000`
 
 ## API Endpoints
 
