@@ -1,76 +1,159 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
+import { dashboardService, DashboardStats } from '@/services/dashboard.service';
 import { authService } from '@/services/auth';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function DashboardPage() {
-    const router = useRouter();
-    const [user, setUser] = useState<any>(null);
+    const { t } = useLanguage();
+    const [stats, setStats] = useState<DashboardStats>({
+        totalProducts: 0,
+        totalStockValue: 0,
+        totalRecipes: 0,
+        totalProductions: 0,
+        totalUsers: 0
+    });
     const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
-        const token = Cookies.get('token');
-        if (!token) {
-            router.push('/login');
-            return;
-        }
-
-        const fetchUser = async () => {
+        const fetchData = async () => {
             try {
-                const userData = await authService.getMe();
-                setUser(userData);
+                const data = await dashboardService.getStats();
+                setStats(data);
+
+                // Check admin status for Users card
+                const userDetails = await authService.getMe();
+                setIsAdmin(userDetails.authorities?.includes('ROLE_ADMIN') || false);
             } catch (error) {
-                console.error('Failed to fetch user', error);
-                Cookies.remove('token');
-                router.push('/login');
+                console.error("Failed to load dashboard data", error);
             } finally {
                 setLoading(false);
             }
         };
+        fetchData();
+    }, []);
 
-        fetchUser();
-    }, [router]);
-
-    const handleLogout = () => {
-        Cookies.remove('token');
-        router.push('/login');
+    // Format currency
+    const formatCurrency = (value: number) => {
+        // Use "pt-BR" for currency format if we want consistency, or adapt based on language if needed.
+        // For now, BRL is likely the system currency regardless of UI language.
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     };
 
+    const managementModules = [
+        {
+            title: t.dashboard.modules.products.title,
+            description: t.dashboard.modules.products.description,
+            icon: "inventory_2",
+            href: "/dashboard/products",
+            color: "text-blue-600 dark:text-blue-400",
+            bg: "bg-blue-50 dark:bg-blue-900/20",
+            count: `${stats.totalProducts} ${t.dashboard.modules.products.unit}`,
+            subtext: `${t.dashboard.modules.products.stock_value}: ${formatCurrency(stats.totalStockValue)}`
+        },
+        {
+            title: t.dashboard.modules.recipes.title,
+            description: t.dashboard.modules.recipes.description,
+            icon: "menu_book",
+            href: "/dashboard/recipes",
+            color: "text-amber-600 dark:text-amber-400",
+            bg: "bg-amber-50 dark:bg-amber-900/20",
+            count: `${stats.totalRecipes} ${t.dashboard.modules.recipes.unit}`
+        },
+        {
+            title: t.dashboard.modules.production.title,
+            description: t.dashboard.modules.production.description,
+            icon: "precision_manufacturing",
+            href: "/dashboard/production",
+            color: "text-emerald-600 dark:text-emerald-400",
+            bg: "bg-emerald-50 dark:bg-emerald-900/20",
+            count: `${stats.totalProductions} ${t.dashboard.modules.production.unit}`
+        },
+        // Only show Users card if Admin
+        ...(isAdmin ? [{
+            title: t.dashboard.modules.users.title,
+            description: t.dashboard.modules.users.description,
+            icon: "group",
+            href: "/dashboard/users",
+            color: "text-purple-600 dark:text-purple-400",
+            bg: "bg-purple-50 dark:bg-purple-900/20",
+            count: `${stats.totalUsers} ${t.dashboard.modules.users.unit}`
+        }] : [])
+    ];
+
     if (loading) {
-        return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Carregando...</div>;
+        return (
+            <main className="flex flex-1 justify-center py-6 px-4 md:px-8 lg:px-40 min-h-screen items-center">
+                <div className="flex flex-col items-center gap-4">
+                    <span className="material-symbols-outlined text-4xl animate-spin text-primary">progress_activity</span>
+                    <p className="text-text-secondary">{t.common.loading}</p>
+                </div>
+            </main>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-8">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-center mb-10">
-                    <h1 className="text-3xl font-bold">Dashboard</h1>
-                    <button
-                        onClick={handleLogout}
-                        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm transition-colors"
-                    >
-                        Sair
-                    </button>
+        <main className="flex flex-1 justify-center py-6 px-4 md:px-8 lg:px-40">
+            <div className="layout-content-container flex flex-col max-w-[1200px] flex-1 gap-8">
+
+                {/* Page Heading */}
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-text-main text-3xl md:text-4xl font-bold leading-tight tracking-tight">{t.dashboard.title}</h1>
+                    <p className="text-text-secondary text-base font-normal">{t.dashboard.subtitle}</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                        <h2 className="text-xl font-semibold mb-2 text-gray-200">Informações do Usuário</h2>
-                        <div className="text-gray-400 space-y-1">
-                            <p><span className="text-gray-500">Usuário:</span> {user?.username}</p>
-                            <p><span className="text-gray-500">Permissões:</span> {user?.authorities?.join(', ')}</p>
-                        </div>
-                    </div>
+                {/* Management Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    {managementModules.map((module) => (
+                        <Link
+                            key={module.title}
+                            href={module.href}
+                            className="flex flex-col gap-4 rounded-xl p-6 bg-surface-white border border-border-light shadow-sm hover:shadow-md hover:border-primary/50 transition-all group"
+                        >
+                            <div className="flex justify-between items-start">
+                                <div className={`p-3 rounded-lg ${module.bg} ${module.color}`}>
+                                    <span className="material-symbols-outlined text-3xl">{module.icon}</span>
+                                </div>
+                                <span className="material-symbols-outlined text-gray-300 group-hover:text-primary transition-colors">arrow_forward</span>
+                            </div>
 
-                    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-colors cursor-pointer group">
-                        <h2 className="text-xl font-semibold mb-2 text-gray-200 group-hover:text-blue-400">Produtos</h2>
-                        <p className="text-gray-400 text-sm">Gerencie o inventário de produtos.</p>
-                        <a href="#" className="mt-4 inline-block text-blue-500 text-sm">Acessar &rarr;</a>
+                            <div>
+                                <h3 className="text-text-main text-xl font-bold mb-1 group-hover:text-primary transition-colors">{module.title}</h3>
+                                <p className="text-text-secondary text-sm">{module.description}</p>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+
+                {/* Quick Actions */}
+                <div className="rounded-xl bg-surface-white border border-border-light shadow-sm p-6 mt-4">
+                    <h3 className="text-text-main text-lg font-bold mb-4">{t.dashboard.quick_actions.title}</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button className="flex items-center justify-center gap-2 p-3 rounded-lg bg-background-light hover:bg-gray-100 dark:hover:bg-zinc-800 border border-border-light transition-colors text-text-secondary font-medium">
+                            <span className="material-symbols-outlined text-primary">add</span>
+                            {t.dashboard.quick_actions.new_product}
+                        </button>
+                        <button className="flex items-center justify-center gap-2 p-3 rounded-lg bg-background-light hover:bg-gray-100 dark:hover:bg-zinc-800 border border-border-light transition-colors text-text-secondary font-medium">
+                            <span className="material-symbols-outlined text-primary">post_add</span>
+                            {t.dashboard.quick_actions.new_recipe}
+                        </button>
+                        <button className="flex items-center justify-center gap-2 p-3 rounded-lg bg-background-light hover:bg-gray-100 dark:hover:bg-zinc-800 border border-border-light transition-colors text-text-secondary font-medium">
+                            <span className="material-symbols-outlined text-primary">factory</span>
+                            {t.dashboard.quick_actions.start_production}
+                        </button>
+                        {isAdmin && (
+                            <button className="flex items-center justify-center gap-2 p-3 rounded-lg bg-background-light hover:bg-gray-100 dark:hover:bg-zinc-800 border border-border-light transition-colors text-text-secondary font-medium">
+                                <span className="material-symbols-outlined text-primary">person_add</span>
+                                {t.dashboard.quick_actions.invite_user}
+                            </button>
+                        )}
                     </div>
                 </div>
+
             </div>
-        </div>
+        </main>
     );
 }

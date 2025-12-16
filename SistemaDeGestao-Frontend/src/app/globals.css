@@ -3,6 +3,67 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --bg-light: #f4f7f6;
+  --surface-white: #ffffff;
+  --border-light: #e0e0e0;
+  --text-main: #161616;
+  --text-secondary: #525252;
+  --inventory-bg: #001d6c;
+  --color-primary: #0f62fe;
+  --color-primary-hover: #0353e9;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --bg-light: #121212;
+  --surface-white: #1e1e1e;
+  --border-light: #333333;
+  --text-main: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --inventory-bg: #001040;
+}
+
+/* Protanopia - Red-blind friendly palette */
+.protanopia {
+  --background: #f5f5dc;
+  --foreground: #1a1a2e;
+  --bg-light: #eaeacd;
+  --surface-white: #ffffef;
+  --border-light: #c0c0a0;
+  --text-main: #1a1a2e;
+  --text-secondary: #4a4a5e;
+  --inventory-bg: #2e4a62;
+  --color-primary: #0077b6;
+  --color-primary-hover: #005f8a;
+}
+
+/* Deuteranopia - Green-blind friendly palette */
+.deuteranopia {
+  --background: #fff8e7;
+  --foreground: #2d2d44;
+  --bg-light: #f0e8d7;
+  --surface-white: #fffef5;
+  --border-light: #d4c4a8;
+  --text-main: #2d2d44;
+  --text-secondary: #5d5d74;
+  --inventory-bg: #4a3728;
+  --color-primary: #e69f00;
+  --color-primary-hover: #cc8a00;
+}
+
+/* Tritanopia - Blue-blind friendly palette */
+.tritanopia {
+  --background: #fef4f4;
+  --foreground: #2a2a3d;
+  --bg-light: #f5e5e5;
+  --surface-white: #fff8f8;
+  --border-light: #dcc0c0;
+  --text-main: #2a2a3d;
+  --text-secondary: #5a5a6d;
+  --inventory-bg: #8b0000;
+  --color-primary: #d55e00;
+  --color-primary-hover: #b84d00;
 }
 
 @theme inline {
@@ -10,17 +71,64 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
+  
+  /* Custom Theme - Reference CSS variables */
+  --font-display: var(--font-plus-jakarta), "Noto Sans", sans-serif;
+  --font-body: var(--font-noto-sans), sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-background-light: var(--bg-light);
+  --color-surface-white: var(--surface-white);
+  --color-border-light: var(--border-light);
+  --color-text-main: var(--text-main);
+  --color-text-secondary: var(--text-secondary);
+  --color-inventory-bg: var(--inventory-bg);
+
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@layer components {
+    .floating-input:focus ~ label,
+    .floating-input:not(:placeholder-shown) ~ label {
+        transform: translateY(-2.5rem) scale(0.85);
+        color: #0f62fe;
+        font-weight: 600;
+    }
+    .floating-input:not(:placeholder-shown) ~ label {
+        color: #525252;
+    }
+}
+
+/* Autofill styling fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #161616 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #e0e0e0;
+    border-radius: 20px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #bdbdbd;
 }

@@ -1,0 +1,18 @@
+{
+    "name": "Sistema de Gestão",
+    "short_name": "Gestão",
+    "auth_name": "Sistema de Gestão",
+    "description": "Sistema de Gestão de Estoque e Produção",
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ],
+    "theme_color": "#0f172a",
+    "background_color": "#0f172a",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "portrait"
+}
