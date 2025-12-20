@@ -3,6 +3,7 @@ package CodingTechnology.SistemaDeGestao.producao.service;
 import CodingTechnology.SistemaDeGestao.receita.model.entities.IngredienteDaReceita;
 import CodingTechnology.SistemaDeGestao.receita.model.entities.Receita;
 import CodingTechnology.SistemaDeGestao.receita.repository.ReceitaRepository;
+import CodingTechnology.SistemaDeGestao.Produtos.model.entities.Product;
 import CodingTechnology.SistemaDeGestao.Produtos.service.ProductService;
 import CodingTechnology.SistemaDeGestao.producao.model.entities.Producao;
 import CodingTechnology.SistemaDeGestao.producao.repository.ProducaoRepository;
@@ -22,6 +23,7 @@ public class ProducaoService {
     private final ProducaoRepository producaoRepository;
     private final ReceitaRepository receitaRepository;
     private final ProductService productService;
+    private final CodingTechnology.SistemaDeGestao.Produtos.repository.ProductRepository productRepository;
 
     // Registra uma nova produção e desconta automaticamente o estoque
     @Transactional
@@ -33,32 +35,61 @@ public class ProducaoService {
                         "Receita não encontrada com ID: " + producao.getReceita().getId()));
 
         producao.setReceita(receita);
-        calcularEDescontarEstoque(receita, producao.getQuantidadeProduzida());
+
+        // Calcular custos
+        calcularCustosELucro(producao, receita);
+
+        // Descontar estoque baseado em lotes
+        descontarEstoquePorLotes(receita, producao.getQuantidadeLotes());
+
         producao.setEstoqueDescontado(true);
 
         return producaoRepository.save(producao);
     }
 
-    // Calcula as quantidades necessárias e desconta do estoque
-    private void calcularEDescontarEstoque(Receita receita, Integer quantidadeProduzida) {
-        if (receita.getQuantidadePadraoProduzida() == null || receita.getQuantidadePadraoProduzida() <= 0) {
-            throw new IllegalArgumentException(
-                    "A receita precisa ter uma quantidade padrão produzida para calcular o desconto de estoque.");
+    private void calcularCustosELucro(Producao producao, Receita receita) {
+        double custoPorLote = 0.0;
+
+        for (IngredienteDaReceita ingrediente : receita.getIngredientes()) {
+            // Custo = QtdNecessaria * PrecoCompra
+            var produto = productRepository.findById(ingrediente.getProduto().getId()).orElse(null);
+            if (produto != null && produto.getPrecoCompra() != null) {
+                custoPorLote += ingrediente.getQuantidadeNecessaria() * produto.getPrecoCompra();
+            }
         }
 
-        if (quantidadeProduzida == null || quantidadeProduzida <= 0) {
-            throw new IllegalArgumentException("A quantidade produzida deve ser maior que zero.");
+        double custoTotal = custoPorLote * producao.getQuantidadeLotes();
+        producao.setCustoTotal(custoTotal);
+
+        // Lucro Estimado = (Valor Venda Total Estimado) - Custo Total
+        // Valor Venda Total Estimado = (Qtd Produzida Real * Preço unitário médio
+        // baseados nos produtos da receita?)
+        // Na verdade, o lucro real depende do preço de venda do produto final, que pode
+        // não ser a Receita em si, mas os produtos gerados.
+        // Como a Receita gera um "produto" conceitual para venda (ex: 20 coxinhas),
+        // vamos assumir que o lucro é calculado depois na venda.
+        // Mas o pedido é "Dashboard para calcular lucros".
+        // Vamos deixar o lucroEstimado como null por enquanto se não tivermos preço de
+        // venda na Receita.
+        // Se a receita tiver um preço de venda sugerido (ainda não tem), usariamos.
+        // Vamos apenas salvar o Custo Total corretamente por enquanto.
+        producao.setLucroEstimado(0.0); // Placeholder until Recipe has selling price
+    }
+
+    // Calcula as quantidades necessárias e desconta do estoque
+    private void descontarEstoquePorLotes(Receita receita, Integer quantidadeLotes) {
+        if (quantidadeLotes == null || quantidadeLotes <= 0) {
+            throw new IllegalArgumentException("A quantidade de lotes deve ser maior que zero.");
         }
 
         if (receita.getIngredientes() == null || receita.getIngredientes().isEmpty()) {
             throw new IllegalArgumentException("A receita não possui ingredientes cadastrados.");
         }
 
-        double fatorProporcao = (double) quantidadeProduzida / receita.getQuantidadePadraoProduzida();
         Map<Long, Double> quantidadesNecessarias = new HashMap<>();
 
         for (IngredienteDaReceita ingrediente : receita.getIngredientes()) {
-            double quantidadeNecessaria = ingrediente.getQuantidadeNecessaria() * fatorProporcao;
+            double quantidadeNecessaria = ingrediente.getQuantidadeNecessaria() * quantidadeLotes;
             quantidadesNecessarias.put(ingrediente.getProduto().getId(), quantidadeNecessaria);
 
             var produto = productService.getProductById(ingrediente.getProduto().getId())

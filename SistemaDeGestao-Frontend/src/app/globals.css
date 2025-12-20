@@ -132,3 +132,38 @@ input:-webkit-autofill:active {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: #bdbdbd;
 }
+
+/* Animação de Explosão/Pop para Modais */
+@keyframes explosion-in {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes implosion-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+.animate-explosion {
+  animation: explosion-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-implosion {
+  animation: implosion-out 0.3s ease-in forwards;
+}

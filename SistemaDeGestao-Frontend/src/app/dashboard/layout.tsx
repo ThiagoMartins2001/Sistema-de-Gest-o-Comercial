@@ -7,6 +7,10 @@ import { useRouter } from 'next/navigation';
 import { useTheme, themeOptions } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+import ProductModal from '@/components/ProductModal';
+import RecipeModal from '@/components/RecipeModal';
+import ProductionModal from '@/components/ProductionModal';
+
 export default function DashboardLayout({
     children,
 }: {
@@ -16,6 +20,12 @@ export default function DashboardLayout({
     const [userInitial, setUserInitial] = useState('U');
     const [showLangMenu, setShowLangMenu] = useState(false);
     const [showThemeMenu, setShowThemeMenu] = useState(false);
+
+    // Modal State
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
+    const [isProductionModalOpen, setIsProductionModalOpen] = useState(false);
+
     const router = useRouter();
     const { theme, setTheme } = useTheme();
     const { language, setLanguage, t } = useLanguage();
@@ -54,15 +64,25 @@ export default function DashboardLayout({
                             </Link>
                             {/* Desktop Navigation */}
                             <nav className="hidden md:flex items-center gap-1">
-                                <Link href="/dashboard/products" className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium leading-normal transition-all">
+                                {/* Changed from Link to Button to open Modal */}
+                                <button
+                                    onClick={() => setIsProductModalOpen(true)}
+                                    className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium leading-normal transition-all"
+                                >
                                     Produtos
-                                </Link>
-                                <Link href="/dashboard/recipes" className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium leading-normal transition-all">
+                                </button>
+                                <button
+                                    onClick={() => setIsRecipeModalOpen(true)}
+                                    className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium leading-normal transition-all"
+                                >
                                     Receitas
-                                </Link>
-                                <Link href="/dashboard/production" className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium leading-normal transition-all">
+                                </button>
+                                <button
+                                    onClick={() => setIsProductionModalOpen(true)}
+                                    className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium leading-normal transition-all"
+                                >
                                     Produção
-                                </Link>
+                                </button>
                                 {isAdmin && (
                                     <Link href="/dashboard/users" className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium leading-normal transition-all">
                                         Usuários
@@ -155,15 +175,25 @@ export default function DashboardLayout({
                     </div>
                     {/* Mobile Navigation */}
                     <div className="md:hidden flex px-6 pb-4 gap-2 overflow-x-auto scrollbar-hide">
-                        <Link href="/dashboard/products" className="text-white bg-white/10 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                        {/* Changed from Link to Button to open Modal */}
+                        <button
+                            onClick={() => setIsProductModalOpen(true)}
+                            className="text-white bg-white/10 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
+                        >
                             Produtos
-                        </Link>
-                        <Link href="/dashboard/recipes" className="text-white/70 hover:text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                        </button>
+                        <button
+                            onClick={() => setIsRecipeModalOpen(true)}
+                            className="text-white/70 hover:text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
+                        >
                             Receitas
-                        </Link>
-                        <Link href="/dashboard/production" className="text-white/70 hover:text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                        </button>
+                        <button
+                            onClick={() => setIsProductionModalOpen(true)}
+                            className="text-white/70 hover:text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
+                        >
                             Produção
-                        </Link>
+                        </button>
                         {isAdmin && (
                             <Link href="/dashboard/users" className="text-white/70 hover:text-white px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
                                 Usuários
@@ -175,6 +205,22 @@ export default function DashboardLayout({
 
             {/* Main Content Rendered Here */}
             {children}
+
+            {/* Product Modal */}
+            <ProductModal
+                isOpen={isProductModalOpen}
+                onClose={() => setIsProductModalOpen(false)}
+            />
+            {/* Recipe Modal */}
+            <RecipeModal
+                isOpen={isRecipeModalOpen}
+                onClose={() => setIsRecipeModalOpen(false)}
+            />
+            {/* Production Modal */}
+            <ProductionModal
+                isOpen={isProductionModalOpen}
+                onClose={() => setIsProductionModalOpen(false)}
+            />
         </div>
     );
 }

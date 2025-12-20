@@ -72,5 +72,9 @@ export const dashboardService = {
             console.error('Error fetching dashboard stats:', error);
             throw error;
         }
+    },
+    async getFinancials() {
+        const response = await api.get('/dashboard/financials');
+        return response.data;
     }
 };

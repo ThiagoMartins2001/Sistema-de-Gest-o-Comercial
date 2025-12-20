@@ -26,6 +26,15 @@ public class Producao {
     @Column(name = "quantidade_produzida", nullable = false)
     private Integer quantidadeProduzida;
 
+    @Column(name = "quantidade_lotes", nullable = false)
+    private Integer quantidadeLotes;
+
+    @Column(name = "custo_total")
+    private Double custoTotal;
+
+    @Column(name = "lucro_estimado")
+    private Double lucroEstimado;
+
     @Column(name = "data_producao", nullable = false)
     private LocalDateTime dataProducao;
 

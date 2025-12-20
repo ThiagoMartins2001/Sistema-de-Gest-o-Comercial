@@ -18,11 +18,23 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
 
+    const [financials, setFinancials] = useState({
+        totalProfit: 0,
+        totalCost: 0,
+        productionCount: 0,
+        avgProfitPerProduction: 0
+    });
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await dashboardService.getStats();
-                setStats(data);
+                const [statsData, financialData] = await Promise.all([
+                    dashboardService.getStats(),
+                    dashboardService.getFinancials()
+                ]);
+
+                setStats(statsData);
+                setFinancials(financialData);
 
                 // Check admin status for Users card
                 const userDetails = await authService.getMe();
@@ -38,8 +50,6 @@ export default function DashboardPage() {
 
     // Format currency
     const formatCurrency = (value: number) => {
-        // Use "pt-BR" for currency format if we want consistency, or adapt based on language if needed.
-        // For now, BRL is likely the system currency regardless of UI language.
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     };
 
@@ -103,6 +113,37 @@ export default function DashboardPage() {
                 <div className="flex flex-col gap-1">
                     <h1 className="text-text-main text-3xl md:text-4xl font-bold leading-tight tracking-tight">{t.dashboard.title}</h1>
                     <p className="text-text-secondary text-base font-normal">{t.dashboard.subtitle}</p>
+                </div>
+
+                {/* Financial Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-surface-white p-6 rounded-xl border border-border-light shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-lg bg-green-50 text-green-600">
+                                <span className="material-symbols-outlined">payments</span>
+                            </div>
+                            <span className="text-text-secondary font-medium">Lucro Total Estimado</span>
+                        </div>
+                        <div className="text-2xl font-bold text-text-main">{formatCurrency(financials.totalProfit)}</div>
+                    </div>
+                    <div className="bg-surface-white p-6 rounded-xl border border-border-light shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
+                                <span className="material-symbols-outlined">trending_up</span>
+                            </div>
+                            <span className="text-text-secondary font-medium">Média de Lucro / Produção</span>
+                        </div>
+                        <div className="text-2xl font-bold text-text-main">{formatCurrency(financials.avgProfitPerProduction)}</div>
+                    </div>
+                    <div className="bg-surface-white p-6 rounded-xl border border-border-light shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-lg bg-orange-50 text-orange-600">
+                                <span className="material-symbols-outlined">monetization_on</span>
+                            </div>
+                            <span className="text-text-secondary font-medium">Custo Total Produção</span>
+                        </div>
+                        <div className="text-2xl font-bold text-text-main">{formatCurrency(financials.totalCost)}</div>
+                    </div>
                 </div>
 
                 {/* Management Grid */}

@@ -28,6 +28,9 @@ public class Receita {
     @Column(name = "quantidade_padrao_produzida")
     private Integer quantidadePadraoProduzida;
 
+    @Column(name = "preco_venda_sugerido")
+    private Double precoVenda;
+
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 

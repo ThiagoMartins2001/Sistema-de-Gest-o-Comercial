@@ -64,9 +64,12 @@ public class ReceitaService {
 
         validarReceita(receitaAtualizada);
 
+        validatePrecoVenda(receitaAtualizada);
+
         receitaExistente.setNome(receitaAtualizada.getNome());
         receitaExistente.setDescricao(receitaAtualizada.getDescricao());
         receitaExistente.setQuantidadePadraoProduzida(receitaAtualizada.getQuantidadePadraoProduzida());
+        receitaExistente.setPrecoVenda(receitaAtualizada.getPrecoVenda());
 
         ingredienteDaReceitaRepository.deleteByReceitaId(id);
         receitaExistente.getIngredientes().clear();
@@ -147,6 +150,12 @@ public class ReceitaService {
 
         if (ingrediente.getQuantidadeNecessaria() == null || ingrediente.getQuantidadeNecessaria() <= 0) {
             throw new IllegalArgumentException("A quantidade necessária do ingrediente deve ser maior que zero.");
+        }
+    }
+
+    private void validatePrecoVenda(Receita receita) {
+        if (receita.getPrecoVenda() != null && receita.getPrecoVenda() < 0) {
+            throw new IllegalArgumentException("O preço de venda sugerido não pode ser negativo.");
         }
     }
 }
