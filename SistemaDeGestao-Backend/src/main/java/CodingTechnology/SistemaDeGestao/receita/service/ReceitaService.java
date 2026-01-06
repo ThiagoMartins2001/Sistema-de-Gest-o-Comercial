@@ -151,6 +151,10 @@ public class ReceitaService {
         if (ingrediente.getQuantidadeNecessaria() == null || ingrediente.getQuantidadeNecessaria() <= 0) {
             throw new IllegalArgumentException("A quantidade necessária do ingrediente deve ser maior que zero.");
         }
+
+        if (ingrediente.getUnidadeMedida() == null) {
+            throw new IllegalArgumentException("A unidade de medida do ingrediente é obrigatória.");
+        }
     }
 
     private void validatePrecoVenda(Receita receita) {

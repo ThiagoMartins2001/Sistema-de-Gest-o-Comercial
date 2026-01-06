@@ -146,17 +146,23 @@ export default function ProductModal({ isOpen, onClose }: ProductModalProps) {
                     </div>
 
                     {/* Unit */}
+                    {/* Unit */}
                     <div>
                         <label className="block text-sm font-medium text-text-secondary mb-1">Unidade</label>
-                        <input
-                            type="text"
+                        <select
                             name="unidadeMedida"
                             required
                             className="w-full h-11 px-4 rounded-lg border border-border-light bg-background-light focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none"
-                            placeholder="Ex: UN, KG, LT"
                             value={formData.unidadeMedida}
                             onChange={handleChange}
-                        />
+                        >
+                            <option value="UN">Unidade (UN)</option>
+                            <option value="KG">Quilo (KG)</option>
+                            <option value="G">Grama (G)</option>
+                            <option value="MG">Miligrama (MG)</option>
+                            <option value="L">Litro (L)</option>
+                            <option value="ML">Mililitro (ML)</option>
+                        </select>
                     </div>
 
                     {/* Initial Quantity */}

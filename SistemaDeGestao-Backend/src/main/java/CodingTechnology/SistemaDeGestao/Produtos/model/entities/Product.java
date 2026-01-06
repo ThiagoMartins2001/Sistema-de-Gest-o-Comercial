@@ -2,6 +2,7 @@ package CodingTechnology.SistemaDeGestao.Produtos.model.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida;
 
 @Entity
 @Table(name = "products")
@@ -17,7 +18,8 @@ public class Product {
 
     private String nome;
     private String tipoControle;
-    private String unidadeMedida;
+    @Enumerated(EnumType.STRING)
+    private UnidadeMedida unidadeMedida;
     private Double quantidadeInicial;
     private Double quantidadeAtual;
     private Double precoCompra;

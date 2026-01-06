@@ -51,10 +51,12 @@ public class ProducaoService {
         double custoPorLote = 0.0;
 
         for (IngredienteDaReceita ingrediente : receita.getIngredientes()) {
-            // Custo = QtdNecessaria * PrecoCompra
+            // Custo = QtdNecessaria (convertida para unidade de compra) * PrecoCompra
             var produto = productRepository.findById(ingrediente.getProduto().getId()).orElse(null);
             if (produto != null && produto.getPrecoCompra() != null) {
-                custoPorLote += ingrediente.getQuantidadeNecessaria() * produto.getPrecoCompra();
+                double quantidadeConvertida = ingrediente.getUnidadeMedida()
+                        .converterPara(produto.getUnidadeMedida(), ingrediente.getQuantidadeNecessaria());
+                custoPorLote += quantidadeConvertida * produto.getPrecoCompra();
             }
         }
 
@@ -89,20 +91,25 @@ public class ProducaoService {
         Map<Long, Double> quantidadesNecessarias = new HashMap<>();
 
         for (IngredienteDaReceita ingrediente : receita.getIngredientes()) {
-            double quantidadeNecessaria = ingrediente.getQuantidadeNecessaria() * quantidadeLotes;
-            quantidadesNecessarias.put(ingrediente.getProduto().getId(), quantidadeNecessaria);
-
             var produto = productService.getProductById(ingrediente.getProduto().getId())
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Produto não encontrado: " + ingrediente.getProduto().getNome()));
 
-            if (produto.getQuantidadeAtual() == null || produto.getQuantidadeAtual() < quantidadeNecessaria) {
+            double quantidadeNecessariaReceita = ingrediente.getQuantidadeNecessaria() * quantidadeLotes;
+
+            // Converter a quantidade da receita para a unidade do produto no estoque
+            double quantidadeNecessariaEstoque = ingrediente.getUnidadeMedida()
+                    .converterPara(produto.getUnidadeMedida(), quantidadeNecessariaReceita);
+
+            quantidadesNecessarias.put(ingrediente.getProduto().getId(), quantidadeNecessariaEstoque);
+
+            if (produto.getQuantidadeAtual() == null || produto.getQuantidadeAtual() < quantidadeNecessariaEstoque) {
                 throw new IllegalArgumentException(
                         String.format("Estoque insuficiente de %s. Disponível: %.2f %s, Necessário: %.2f %s",
                                 produto.getNome(),
                                 produto.getQuantidadeAtual() != null ? produto.getQuantidadeAtual() : 0.0,
                                 produto.getUnidadeMedida(),
-                                quantidadeNecessaria,
+                                quantidadeNecessariaEstoque,
                                 produto.getUnidadeMedida()));
             }
         }

@@ -11,8 +11,9 @@ interface RecipeModalProps {
 }
 
 interface IngredientLine {
-    productId: string; // Using string for select value
+    productId: string;
     quantity: number;
+    unit: string;
     observation: string;
 }
 
@@ -79,7 +80,7 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
     };
 
     const handleAddIngredient = () => {
-        setIngredients([...ingredients, { productId: '', quantity: 0, observation: '' }]);
+        setIngredients([...ingredients, { productId: '', quantity: 0, unit: 'UN', observation: '' }]);
     };
 
     const handleRemoveIngredient = (index: number) => {
@@ -107,6 +108,7 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
                 ingredientes: ingredients.map(ing => ({
                     produto: { id: Number(ing.productId) } as Product,
                     quantidadeNecessaria: Number(ing.quantity),
+                    unidadeMedida: ing.unit,
                     observacoes: ing.observation
                 }))
             };
@@ -253,12 +255,27 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
                                             type="number"
                                             required
                                             min="0"
-                                            step="0.01"
+                                            step="0.001"
                                             placeholder="Qtd"
                                             className="w-full h-10 px-3 rounded-md border border-border-light bg-white focus:ring-1 focus:ring-primary outline-none text-sm"
                                             value={ing.quantity || ''}
                                             onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
                                         />
+                                    </div>
+                                    <div className="w-24">
+                                        <select
+                                            required
+                                            className="w-full h-10 px-3 rounded-md border border-border-light bg-white focus:ring-1 focus:ring-primary outline-none text-sm"
+                                            value={ing.unit}
+                                            onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
+                                        >
+                                            <option value="UN">UN</option>
+                                            <option value="KG">KG</option>
+                                            <option value="G">G</option>
+                                            <option value="MG">MG</option>
+                                            <option value="L">L</option>
+                                            <option value="ML">ML</option>
+                                        </select>
                                     </div>
                                     <div className="flex-1 w-full">
                                         <input

@@ -3,6 +3,7 @@ package CodingTechnology.SistemaDeGestao.receita.model.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import CodingTechnology.SistemaDeGestao.Produtos.model.entities.Product;
+import CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,6 +31,10 @@ public class IngredienteDaReceita {
 
     @Column(name = "quantidade_necessaria", nullable = false)
     private Double quantidadeNecessaria;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unidade_medida", nullable = false)
+    private UnidadeMedida unidadeMedida;
 
     @Column(columnDefinition = "TEXT")
     private String observacoes;

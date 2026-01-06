@@ -24,7 +24,7 @@ public class ProductService {
         if (product.getTipoControle() == null || product.getTipoControle().isBlank()) {
             throw new IllegalArgumentException("O tipo de controle é obrigatório.");
         }
-        if (product.getUnidadeMedida() == null || product.getUnidadeMedida().isBlank()) {
+        if (product.getUnidadeMedida() == null) {
             throw new IllegalArgumentException("A unidade de medida é obrigatória.");
         }
 
