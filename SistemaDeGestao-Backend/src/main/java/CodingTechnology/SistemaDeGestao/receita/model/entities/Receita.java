@@ -31,6 +31,9 @@ public class Receita {
     @Column(name = "preco_venda_sugerido")
     private Double precoVenda;
 
+    @Column(name = "margem_lucro")
+    private Double margemLucro; // Porcentagem (ex: 50.0 para 50%)
+
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 

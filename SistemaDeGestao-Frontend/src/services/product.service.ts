@@ -3,7 +3,6 @@ import api from './api';
 export interface Product {
     id?: number;
     nome: string;
-    tipoControle: string;
     unidadeMedida: string;
     quantidadeInicial: number;
     quantidadeAtual?: number;
@@ -20,5 +19,14 @@ export const productService = {
     async list(): Promise<Product[]> {
         const response = await api.get<Product[]>('/products/list');
         return response.data;
+    },
+
+    async update(id: number, product: Product): Promise<Product> {
+        const response = await api.put<Product>(`/products/update/${id}`, product);
+        return response.data;
+    },
+
+    async delete(id: number): Promise<void> {
+        await api.delete(`/products/delete/${id}`);
     }
 };

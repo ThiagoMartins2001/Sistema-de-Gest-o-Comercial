@@ -14,6 +14,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import CodingTechnology.SistemaDeGestao.receita.DTO.CalculoCustoDTO;
+import CodingTechnology.SistemaDeGestao.receita.DTO.ItemCalculoDTO;
+import CodingTechnology.SistemaDeGestao.receita.DTO.ResultadoCalculoDTO;
+
 @Service
 @RequiredArgsConstructor
 public class ReceitaService {
@@ -161,5 +165,41 @@ public class ReceitaService {
         if (receita.getPrecoVenda() != null && receita.getPrecoVenda() < 0) {
             throw new IllegalArgumentException("O preço de venda sugerido não pode ser negativo.");
         }
+    }
+
+    // Calcula o custo previsto baseado nos ingredientes informados
+    public ResultadoCalculoDTO calcularCustoPrevisao(CalculoCustoDTO dto) {
+        double custoTotal = 0.0;
+
+        if (dto.getIngredientes() != null) {
+            for (ItemCalculoDTO item : dto.getIngredientes()) {
+                if (item.getProdutoId() == null || item.getQuantidade() == null || item.getUnidadeMedida() == null) {
+                    continue; // Pular itens incompletos
+                }
+
+                Product produto = productRepository.findById(item.getProdutoId()).orElse(null);
+
+                if (produto != null && produto.getPrecoCompra() != null) {
+                    // Converter a quantidade informada para a unidade de medida do produto em
+                    // estoque
+                    try {
+                        double quantidadeConvertida = item.getUnidadeMedida()
+                                .converterPara(produto.getUnidadeMedida(), item.getQuantidade());
+                        custoTotal += quantidadeConvertida * produto.getPrecoCompra();
+                    } catch (Exception e) {
+                        // Se falhar a conversão (ex: unidades incompatíveis), podemos logar ou ignorar
+                        // Por segurança, ignora o item no cálculo
+                        System.err.println("Erro ao converter unidade para cálculo de custo: " + e.getMessage());
+                    }
+                }
+            }
+        }
+
+        Double precoSugerido = 0.0;
+        if (dto.getMargemLucro() != null) {
+            precoSugerido = custoTotal * (1 + (dto.getMargemLucro() / 100));
+        }
+
+        return new ResultadoCalculoDTO(custoTotal, precoSugerido);
     }
 }

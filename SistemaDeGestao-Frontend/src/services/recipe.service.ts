@@ -13,8 +13,26 @@ export interface Receita {
     nome: string;
     descricao?: string;
     quantidadePadraoProduzida: number;
-    precoVenda?: number; // New field
+    precoVenda?: number;
+    margemLucro?: number; // New field
     ingredientes: IngredienteDaReceita[];
+}
+
+
+export interface ItemCalculoDTO {
+    produtoId: number;
+    quantidade: number;
+    unidadeMedida: string;
+}
+
+export interface CalculoCustoDTO {
+    ingredientes: ItemCalculoDTO[];
+    margemLucro?: number; // New field
+}
+
+export interface ResultadoCalculoDTO {
+    custoTotal: number;
+    precoSugerido?: number; // New field
 }
 
 export const recipeService = {
@@ -25,6 +43,11 @@ export const recipeService = {
 
     async list(): Promise<Receita[]> {
         const response = await api.get<Receita[]>('/receitas/listar');
+        return response.data;
+    },
+
+    async calculateCost(dto: CalculoCustoDTO): Promise<ResultadoCalculoDTO> {
+        const response = await api.post<ResultadoCalculoDTO>('/receitas/calcular-custo', dto);
         return response.data;
     }
 };

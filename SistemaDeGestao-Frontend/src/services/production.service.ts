@@ -1,16 +1,25 @@
 import api from './api';
 import { Receita } from './recipe.service';
 
+export interface ProducaoResultado {
+    id?: number;
+    produto?: { id: number; nome?: string }; // Produto vinculado
+    quantidade: number;
+    unidadeMedida: string;
+    observacoes?: string;
+}
+
 export interface Producao {
     id?: number;
     receita: Receita;
-    quantidadeProduzida: number;
-    quantidadeLotes: number; // New Field
-    custoTotal?: number; // New Field
-    lucroEstimado?: number; // New Field
-    dataProducao?: string; // ISO string
+    quantidadeProduzida?: number; // Agora opcional se tiver resultados
+    quantidadeLotes: number;
+    custoTotal?: number;
+    lucroEstimado?: number;
+    dataProducao?: string;
     observacoes?: string;
     estoqueDescontado?: boolean;
+    resultados?: ProducaoResultado[];
 }
 
 export const productionService = {

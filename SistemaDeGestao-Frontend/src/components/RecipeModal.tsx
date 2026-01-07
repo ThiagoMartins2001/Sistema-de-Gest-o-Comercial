@@ -29,19 +29,58 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
     const [descricao, setDescricao] = useState('');
     const [quantidadePadrao, setQuantidadePadrao] = useState<number>(0);
     const [precoVenda, setPrecoVenda] = useState<number>(0);
+    const [margemLucro, setMargemLucro] = useState<number>(50); // Default 50%
     const [ingredients, setIngredients] = useState<IngredientLine[]>([]);
 
     // Computed Cost
-    const totalCost = ingredients.reduce((acc, ing) => {
-        const product = products.find(p => p.id === Number(ing.productId));
-        if (product && product.precoCompra) {
-            return acc + (product.precoCompra * ing.quantity);
-        }
-        return acc;
-    }, 0);
+    const [totalCost, setTotalCost] = useState(0);
+    const [suggestedPrice, setSuggestedPrice] = useState(0);
+
+    useEffect(() => {
+        const calculateBackendCost = async () => {
+            if (ingredients.length === 0) {
+                setTotalCost(0);
+                setSuggestedPrice(0);
+                return;
+            }
+
+            const payload = {
+                ingredientes: ingredients.map(ing => ({
+                    produtoId: Number(ing.productId),
+                    quantidade: Number(ing.quantity),
+                    unidadeMedida: ing.unit
+                })),
+                margemLucro: margemLucro
+            };
+
+            try {
+                const result = await recipeService.calculateCost(payload);
+                setTotalCost(result.custoTotal);
+                if (result.precoSugerido) setSuggestedPrice(result.precoSugerido);
+            } catch (error) {
+                console.error("Error calculating cost:", error);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            calculateBackendCost();
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timer);
+    }, [ingredients, margemLucro]); // Recalculate if margin changes too
 
     const estimatedProfit = precoVenda ? (precoVenda * quantidadePadrao) - totalCost : 0;
     const profitMargin = precoVenda && totalCost > 0 ? ((estimatedProfit / totalCost) * 100).toFixed(1) : '0.0';
+
+    const applySuggestedPrice = () => {
+        if (suggestedPrice > 0 && quantidadePadrao > 0) {
+            // Suggestion is for total, convert to unit if needed, but backend suggestion usually is total cost * margin
+            // Wait, backend logic was: custoTotal * (1 + margin). Since custoTotal is for the WHOLE recipe output, suggestedPrice is also for WHOLE output.
+            // If user wants unit price, we divide by quantity.
+
+            setPrecoVenda(parseFloat((suggestedPrice / quantidadePadrao).toFixed(2)));
+        }
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -76,6 +115,8 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
         setNome('');
         setDescricao('');
         setQuantidadePadrao(0);
+        setPrecoVenda(0);
+        setMargemLucro(50);
         setIngredients([]);
     };
 
@@ -105,6 +146,7 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
                 descricao,
                 quantidadePadraoProduzida: quantidadePadrao,
                 precoVenda,
+                margemLucro,
                 ingredientes: ingredients.map(ing => ({
                     produto: { id: Number(ing.productId) } as Product,
                     quantidadeNecessaria: Number(ing.quantity),
@@ -177,9 +219,39 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
                             />
                         </div>
 
+                        {/* Profit Margin */}
+                        <div>
+                            <label className="block text-sm font-medium text-text-secondary mb-1">Margem Lucro Desejada (%)</label>
+                            <input
+                                type="number"
+                                min="0"
+                                className="w-full h-11 px-4 rounded-lg border border-border-light bg-background-light focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none"
+                                value={margemLucro || ''}
+                                onChange={(e) => setMargemLucro(Number(e.target.value))}
+                            />
+                        </div>
+
+                        {/* Cost & Suggestion Info */}
+                        <div className="md:col-span-2 grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div>
+                                <div className="text-xs text-text-secondary">Custo Produção (Total)</div>
+                                <div className="text-base font-bold text-text-main">R$ {totalCost.toFixed(2)}</div>
+                            </div>
+                            <div>
+                                <div className="text-xs text-text-secondary">Preço Sugerido (Total da Receita)</div>
+                                <div className="text-lg font-bold text-primary">R$ {suggestedPrice.toFixed(2)}</div>
+                                <div className="text-xs text-text-secondary">
+                                    {(quantidadePadrao > 0) ? `~ R$ ${(suggestedPrice / quantidadePadrao).toFixed(2)} por unidade` : ''}
+                                </div>
+                                <button type="button" onClick={applySuggestedPrice} className="text-xs text-primary hover:underline mt-1 font-medium">
+                                    Aplicar Sugestão ao Unitário
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Selling Price */}
                         <div>
-                            <label className="block text-sm font-medium text-text-secondary mb-1">Preço Sugerido (Unid.)</label>
+                            <label className="block text-sm font-medium text-text-secondary mb-1">Preço Venda Unitário (Real)</label>
                             <input
                                 type="number"
                                 min="0.01"
@@ -190,22 +262,13 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
                             />
                         </div>
 
-                        {/* Cost & Profit Info */}
-                        <div className="md:col-span-1 bg-blue-50 dark:bg-blue-900/10 p-4 rounded-lg border border-blue-100 dark:border-blue-900/30">
-                            <div className="text-sm text-text-secondary">Custo T. Ingredientes</div>
-                            <div className="text-lg font-bold text-text-main">R$ {totalCost.toFixed(2)}</div>
-                        </div>
-                        <div className={`md:col-span-1 p-4 rounded-lg border ${estimatedProfit >= 4 && estimatedProfit <= 10 ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100'}`}>
-                            <div className="text-sm text-text-secondary">Lucro Estimado (Total)</div>
-                            <div className={`text-lg font-bold ${estimatedProfit >= 4 ? 'text-green-600' : 'text-orange-600'}`}>
+                        {/* Final Profit Analysis */}
+                        <div className={`p-4 rounded-lg border ${estimatedProfit > 0 ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+                            <div className="text-sm text-text-secondary">Lucro Real Estimado (Total)</div>
+                            <div className={`text-lg font-bold ${estimatedProfit > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 R$ {estimatedProfit.toFixed(2)}
                             </div>
-                            <div className="text-xs text-text-secondary mt-1">Margem: {profitMargin}%</div>
-                            {(estimatedProfit < 4 || estimatedProfit > 10) && (
-                                <div className="text-xs text-orange-600 font-medium mt-1">
-                                    Meta: R$ 4,00 - R$ 10,00
-                                </div>
-                            )}
+                            <div className="text-xs text-text-secondary mt-1">Margem Real: {profitMargin}%</div>
                         </div>
 
                         {/* Description */}

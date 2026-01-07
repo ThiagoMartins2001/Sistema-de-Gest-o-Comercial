@@ -17,7 +17,7 @@ public class Product {
     private Long id;
 
     private String nome;
-    private String tipoControle;
+
     @Enumerated(EnumType.STRING)
     private UnidadeMedida unidadeMedida;
     private Double quantidadeInicial;

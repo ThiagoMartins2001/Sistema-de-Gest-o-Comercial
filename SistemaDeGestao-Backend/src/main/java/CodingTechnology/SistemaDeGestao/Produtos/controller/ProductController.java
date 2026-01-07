@@ -24,7 +24,7 @@ public class ProductController {
     public ResponseEntity<Product> createProduct(@RequestBody CreateProductDTO data) {
         Product product = new Product();
         product.setNome(data.getNome());
-        product.setTipoControle(data.getTipoControle());
+
         product.setUnidadeMedida(data.getUnidadeMedida());
         product.setQuantidadeInicial(data.getQuantidadeInicial());
         product.setQuantidadeAtual(data.getQuantidadeAtual());
@@ -33,6 +33,25 @@ public class ProductController {
 
         Product savedProduct = productService.saveProduct(product);
         return ResponseEntity.ok(savedProduct);
+    }
+
+    // Atualiza um produto existente
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody CreateProductDTO data) {
+        Product product = new Product();
+        product.setNome(data.getNome());
+        product.setUnidadeMedida(data.getUnidadeMedida());
+        product.setQuantidadeInicial(data.getQuantidadeInicial());
+        // Na edicao, permitimos ajustar o estoque atual diretamente
+        // Se o DTO vier nulo, poderiamos ignorar, mas aqui assumimos que o front manda
+        // o valor
+        product.setQuantidadeAtual(
+                data.getQuantidadeAtual() != null ? data.getQuantidadeAtual() : data.getQuantidadeInicial());
+        product.setPrecoCompra(data.getPrecoCompra());
+        product.setPrecoVenda(data.getPrecoVenda());
+
+        Product updatedProduct = productService.updateProduct(id, product);
+        return ResponseEntity.ok(updatedProduct);
     }
 
     // Lista todos os produtos cadastrados

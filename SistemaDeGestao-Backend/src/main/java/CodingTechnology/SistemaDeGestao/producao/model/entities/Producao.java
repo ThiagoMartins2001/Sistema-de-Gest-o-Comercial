@@ -45,6 +45,23 @@ public class Producao {
     @Builder.Default
     private Boolean estoqueDescontado = false;
 
+    @OneToMany(mappedBy = "producao", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    @ToString.Exclude
+    private java.util.List<ProducaoResultado> resultados = new java.util.ArrayList<>();
+
+    // Adiciona um resultado à produção
+    public void adicionarResultado(ProducaoResultado resultado) {
+        resultados.add(resultado);
+        resultado.setProducao(this);
+    }
+
+    // Remove um resultado da produção
+    public void removerResultado(ProducaoResultado resultado) {
+        resultados.remove(resultado);
+        resultado.setProducao(null);
+    }
+
     // Define data de produção antes de salvar
     @PrePersist
     protected void onCreate() {

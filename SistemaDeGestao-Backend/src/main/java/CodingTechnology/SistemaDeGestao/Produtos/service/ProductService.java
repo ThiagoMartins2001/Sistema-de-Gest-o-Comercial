@@ -21,9 +21,7 @@ public class ProductService {
         if (product.getNome() == null || product.getNome().isBlank()) {
             throw new IllegalArgumentException("O nome do produto é obrigatório.");
         }
-        if (product.getTipoControle() == null || product.getTipoControle().isBlank()) {
-            throw new IllegalArgumentException("O tipo de controle é obrigatório.");
-        }
+
         if (product.getUnidadeMedida() == null) {
             throw new IllegalArgumentException("A unidade de medida é obrigatória.");
         }
@@ -96,5 +94,23 @@ public class ProductService {
 
         produto.setQuantidadeAtual(produto.getQuantidadeAtual() + quantidadeAdicionar);
         productRepository.save(produto);
+    }
+
+    // Atualiza um produto existente
+    public Product updateProduct(Long id, Product updatedProduct) {
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado com ID: " + id));
+
+        existingProduct.setNome(updatedProduct.getNome());
+        existingProduct.setUnidadeMedida(updatedProduct.getUnidadeMedida());
+        existingProduct.setPrecoCompra(updatedProduct.getPrecoCompra());
+        existingProduct.setPrecoVenda(updatedProduct.getPrecoVenda());
+
+        // Se a quantidade atual for informada, atualiza. Senão mantém.
+        if (updatedProduct.getQuantidadeAtual() != null) {
+            existingProduct.setQuantidadeAtual(updatedProduct.getQuantidadeAtual());
+        }
+
+        return productRepository.save(existingProduct);
     }
 }

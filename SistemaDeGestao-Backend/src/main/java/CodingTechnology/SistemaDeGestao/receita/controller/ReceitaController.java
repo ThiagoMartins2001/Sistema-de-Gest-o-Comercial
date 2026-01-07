@@ -13,6 +13,8 @@ import CodingTechnology.SistemaDeGestao.receita.service.ReceitaService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import CodingTechnology.SistemaDeGestao.receita.DTO.CalculoCustoDTO;
+import CodingTechnology.SistemaDeGestao.receita.DTO.ResultadoCalculoDTO;
 
 @RestController
 @RequestMapping("/api/receitas")
@@ -95,5 +97,12 @@ public class ReceitaController {
             error.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
+    }
+
+    // Calcula previsão de custos
+    @PostMapping("/calcular-custo")
+    public ResponseEntity<ResultadoCalculoDTO> calcularCusto(@RequestBody CalculoCustoDTO dto) {
+        ResultadoCalculoDTO resultado = receitaService.calcularCustoPrevisao(dto);
+        return ResponseEntity.ok(resultado);
     }
 }

@@ -6,6 +6,7 @@ import CodingTechnology.SistemaDeGestao.receita.repository.ReceitaRepository;
 import CodingTechnology.SistemaDeGestao.Produtos.model.entities.Product;
 import CodingTechnology.SistemaDeGestao.Produtos.service.ProductService;
 import CodingTechnology.SistemaDeGestao.producao.model.entities.Producao;
+import CodingTechnology.SistemaDeGestao.producao.model.entities.ProducaoResultado;
 import CodingTechnology.SistemaDeGestao.producao.repository.ProducaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,24 @@ public class ProducaoService {
 
         // Descontar estoque baseado em lotes
         descontarEstoquePorLotes(receita, producao.getQuantidadeLotes());
+
+        // Processar Resultados da Produção (Entrada de Estoque)
+        if (producao.getResultados() != null) {
+            for (ProducaoResultado resultado : producao.getResultados()) {
+                resultado.setProducao(producao); // Vínculo bidirecional
+
+                if (resultado.getProduto() != null && resultado.getProduto().getId() != null) {
+                    // Atualizar estoque do produto final
+                    productService.adicionarEstoque(resultado.getProduto().getId(), resultado.getQuantidade());
+
+                    // Carregar dados completos do produto para o resultado (opcional, mas bom para
+                    // consistência)
+                    var prod = productService.getProductById(resultado.getProduto().getId()).orElse(null);
+                    if (prod != null)
+                        resultado.setProduto(prod);
+                }
+            }
+        }
 
         producao.setEstoqueDescontado(true);
 
@@ -139,8 +158,22 @@ public class ProducaoService {
         if (producao.getReceita() == null || producao.getReceita().getId() == null) {
             throw new IllegalArgumentException("A receita é obrigatória.");
         }
-        if (producao.getQuantidadeProduzida() == null || producao.getQuantidadeProduzida() <= 0) {
-            throw new IllegalArgumentException("A quantidade produzida deve ser maior que zero.");
+        if (producao.getResultados() == null || producao.getResultados().isEmpty()) {
+            if (producao.getQuantidadeProduzida() == null || producao.getQuantidadeProduzida() <= 0) {
+                // Se não tem resultados detalhados, exige a quantidade produzida simples
+                throw new IllegalArgumentException(
+                        "A quantidade produzida deve ser maior que zero ou informe resultados detalhados.");
+            }
+        } else {
+            // Se tem resultados, valida cada um
+            for (ProducaoResultado resultado : producao.getResultados()) {
+                if (resultado.getQuantidade() == null || resultado.getQuantidade() < 0) {
+                    throw new IllegalArgumentException("A quantidade de um resultado não pode ser negativa.");
+                }
+                if (resultado.getUnidadeMedida() == null) {
+                    throw new IllegalArgumentException("A unidade de medida do resultado é obrigatória.");
+                }
+            }
         }
     }
 }
