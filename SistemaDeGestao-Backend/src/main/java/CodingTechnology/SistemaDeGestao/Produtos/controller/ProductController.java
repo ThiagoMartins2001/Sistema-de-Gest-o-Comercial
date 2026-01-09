@@ -30,6 +30,7 @@ public class ProductController {
         product.setQuantidadeAtual(data.getQuantidadeAtual());
         product.setPrecoCompra(data.getPrecoCompra());
         product.setPrecoVenda(data.getPrecoVenda());
+        product.setPesoPorUnidade(data.getPesoPorUnidade());
 
         Product savedProduct = productService.saveProduct(product);
         return ResponseEntity.ok(savedProduct);
@@ -49,6 +50,7 @@ public class ProductController {
                 data.getQuantidadeAtual() != null ? data.getQuantidadeAtual() : data.getQuantidadeInicial());
         product.setPrecoCompra(data.getPrecoCompra());
         product.setPrecoVenda(data.getPrecoVenda());
+        product.setPesoPorUnidade(data.getPesoPorUnidade());
 
         Product updatedProduct = productService.updateProduct(id, product);
         return ResponseEntity.ok(updatedProduct);

@@ -17,38 +17,36 @@ interface ProductFormState {
     quantidadeAtual: string | number;
     precoCompra: number;
     precoVenda: number;
+
+    // Novos campos para logica de peso
+    pesoPorUnidade: string | number;
+    numeroEmbalagens: string | number;
 }
 
 export default function ProductModal({ isOpen, onClose }: ProductModalProps) {
     const { t } = useLanguage();
-    // Controls the CSS transition state (0 -> 1)
     const [animate, setAnimate] = useState(false);
-    // Controls whether the component is actually in the DOM (to allow exit animation)
     const [isVisible, setIsVisible] = useState(false);
-
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'form' | 'list'>('form');
     const [productList, setProductList] = useState<Product[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Form State
     const [formData, setFormData] = useState<ProductFormState>({
         nome: '',
         unidadeMedida: 'UN',
         quantidadeInicial: 0,
         quantidadeAtual: 0,
         precoCompra: 0,
-        precoVenda: 0
+        precoVenda: 0,
+        pesoPorUnidade: 0,
+        numeroEmbalagens: 0
     });
 
     useEffect(() => {
         if (isOpen) {
             setIsVisible(true);
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setAnimate(true);
-                });
-            });
+            requestAnimationFrame(() => setAnimate(true));
             loadProducts();
         } else {
             setAnimate(false);
@@ -77,17 +75,33 @@ export default function ProductModal({ isOpen, onClose }: ProductModalProps) {
             quantidadeInicial: 0,
             quantidadeAtual: 0,
             precoCompra: 0,
-            precoVenda: 0
+            precoVenda: 0,
+            pesoPorUnidade: 0,
+            numeroEmbalagens: 0
         });
     };
 
     const handleEdit = (product: Product) => {
+        // Se temos pesoPorUnidade salvo, tentamos calcular o numero de embalagens
+        let numEmbalagens: string | number = 0;
+        let pesoUnit: string | number = 0;
+
+        if (product.pesoPorUnidade && product.pesoPorUnidade > 0) {
+            pesoUnit = product.pesoPorUnidade;
+            // Se QuantidadeAtual (Total) = 2000g e PesoUnit = 1000g -> Num = 2
+            if (product.quantidadeAtual) {
+                numEmbalagens = product.quantidadeAtual / product.pesoPorUnidade;
+            }
+        }
+
         setFormData({
             ...product,
             quantidadeInicial: product.quantidadeInicial || 0,
             quantidadeAtual: product.quantidadeAtual || 0,
             precoCompra: product.precoCompra || 0,
-            precoVenda: product.precoVenda || 0
+            precoVenda: product.precoVenda || 0,
+            pesoPorUnidade: pesoUnit,
+            numeroEmbalagens: numEmbalagens
         });
         setActiveTab('form');
     };
@@ -106,10 +120,31 @@ export default function ProductModal({ isOpen, onClose }: ProductModalProps) {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+
+        setFormData(prev => {
+            const newData = { ...prev, [name]: value };
+
+            // Logica de calculo automatico
+            if (newData.unidadeMedida !== 'UN') {
+                if (name === 'numeroEmbalagens' || name === 'pesoPorUnidade' || name === 'unidadeMedida') {
+                    const packs = parseFloat(String(newData.numeroEmbalagens || 0));
+                    const weight = parseFloat(String(newData.pesoPorUnidade || 0));
+                    if (!isNaN(packs) && !isNaN(weight)) {
+                        // Total = Pacotes * Peso
+                        const total = packs * weight;
+                        newData.quantidadeInicial = total;
+                        newData.quantidadeAtual = total; // Assumindo que ao editar/criar estamos definindo o estoque atual
+                    }
+                }
+            } else {
+                // Se for UN, numeroEmbalagens = quantidade
+                if (name === 'numeroEmbalagens') {
+                    newData.quantidadeInicial = value;
+                    newData.quantidadeAtual = value;
+                }
+            }
+            return newData;
+        });
     };
 
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,10 +165,14 @@ export default function ProductModal({ isOpen, onClose }: ProductModalProps) {
         try {
             const payload: Product = {
                 ...formData,
+                id: formData.id,
+                nome: formData.nome,
+                unidadeMedida: formData.unidadeMedida,
+                precoCompra: formData.precoCompra,
+                precoVenda: formData.precoVenda,
                 quantidadeInicial: Number(formData.quantidadeInicial),
                 quantidadeAtual: formData.quantidadeAtual ? Number(formData.quantidadeAtual) : undefined,
-                precoCompra: formData.precoCompra,
-                precoVenda: formData.precoVenda
+                pesoPorUnidade: Number(formData.pesoPorUnidade)
             };
 
             if (formData.id) {
@@ -216,7 +255,7 @@ export default function ProductModal({ isOpen, onClose }: ProductModalProps) {
 
                             {/* Unit */}
                             <div>
-                                <label className="block text-sm font-medium text-text-secondary mb-1">Unidade</label>
+                                <label className="block text-sm font-medium text-text-secondary mb-1">Unidade de Medida (do Estoque)</label>
                                 <select
                                     name="unidadeMedida"
                                     required
@@ -248,20 +287,67 @@ export default function ProductModal({ isOpen, onClose }: ProductModalProps) {
                                 />
                             </div>
 
-                            {/* Initial/Current Quantity */}
-                            <div>
-                                <label className="block text-sm font-medium text-text-secondary mb-1">{formData.id ? 'Estoque Atual' : 'Quantidade Inicial'}</label>
-                                <input
-                                    type="number"
-                                    name={formData.id ? "quantidadeAtual" : "quantidadeInicial"}
-                                    required
-                                    min="0"
-                                    step="0.01"
-                                    className="w-full h-11 px-4 rounded-lg border border-border-light bg-background-light focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none"
-                                    value={(formData.id ? formData.quantidadeAtual : formData.quantidadeInicial) || ''}
-                                    onChange={handleChange}
-                                />
-                            </div>
+                            {/* LOGIC DIVIDER: If UN, simple quantity. If KG/L, detailed. */}
+                            {formData.unidadeMedida === 'UN' ? (
+                                <div>
+                                    <label className="block text-sm font-medium text-text-secondary mb-1">Quantidade de Itens</label>
+                                    <input
+                                        type="number"
+                                        name="numeroEmbalagens" // Using helper field mapped to quantity
+                                        required
+                                        min="0"
+                                        step="1"
+                                        className="w-full h-11 px-4 rounded-lg border border-border-light bg-background-light focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none"
+                                        value={formData.numeroEmbalagens || ''}
+                                        onChange={handleChange}
+                                        placeholder="Ex: 10"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Total no Estoque: {formData.quantidadeAtual} UN</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-medium text-text-secondary mb-1">Qtd. de Embalagens/Pacotes</label>
+                                        <input
+                                            type="number"
+                                            name="numeroEmbalagens"
+                                            required
+                                            min="0"
+                                            step="0.01"
+                                            className="w-full h-11 px-4 rounded-lg border border-border-light bg-background-light focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none"
+                                            value={formData.numeroEmbalagens || ''}
+                                            onChange={handleChange}
+                                            placeholder="Ex: 2 (sacos)"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-text-secondary mb-1">Peso/Volume por Embalagem</label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                name="pesoPorUnidade"
+                                                required
+                                                min="0"
+                                                step="0.001"
+                                                className="w-full h-11 px-4 rounded-lg border border-border-light bg-background-light focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none"
+                                                value={formData.pesoPorUnidade || ''}
+                                                onChange={handleChange}
+                                                placeholder={`Ex: 1 (${formData.unidadeMedida})`}
+                                            />
+                                            <span className="text-gray-500 font-medium">{formData.unidadeMedida}</span>
+                                        </div>
+                                    </div>
+                                    <div className="md:col-span-2 bg-blue-50 p-4 rounded-lg border border-blue-100 flex justify-between items-center">
+                                        <div>
+                                            <p className="text-sm text-blue-800 font-medium">Estoque Total Calculado</p>
+                                            <p className="text-xs text-blue-600">O sistema usará este valor para baixar receitas.</p>
+                                        </div>
+                                        <div className="text-xl font-bold text-blue-700">
+                                            {Number(formData.quantidadeAtual).toFixed(3)} <span className="text-sm font-medium">{formData.unidadeMedida}</span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
 
 
@@ -295,63 +381,83 @@ export default function ProductModal({ isOpen, onClose }: ProductModalProps) {
                         </form>
                     ) : (
                         <div className="flex flex-col gap-4">
-                            <div className="relative">
-                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-                                <input
-                                    type="text"
-                                    placeholder="Buscar produto..."
-                                    className="w-full h-10 pl-10 pr-4 rounded-lg border border-gray-200 focus:border-primary outline-none"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
+                            {/* List */}
+                            {activeTab === 'list' && (
+                                <div className="space-y-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar produtos..."
+                                        className="w-full h-11 px-4 rounded-lg border border-border-light bg-background-light focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
 
-                            <div className="overflow-x-auto rounded-lg border border-gray-100">
-                                <table className="w-full text-sm text-left">
-                                    <thead className="bg-gray-50 text-gray-500 font-medium">
-                                        <tr>
-                                            <th className="px-4 py-3">Nome</th>
-                                            <th className="px-4 py-3">Unid.</th>
-                                            <th className="px-4 py-3">Estoque</th>
-                                            <th className="px-4 py-3">Vlr. Compra (Unit.)</th>
-                                            <th className="px-4 py-3 text-right">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {filteredProducts.map(product => (
-                                            <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-4 py-3 font-medium text-gray-800">{product.nome}</td>
-                                                <td className="px-4 py-3 text-gray-600">{product.unidadeMedida}</td>
-                                                <td className="px-4 py-3 font-medium text-blue-600">{product.quantidadeAtual?.toFixed(2) || '0.00'}</td>
-                                                <td className="px-4 py-3 text-gray-800">R$ {product.precoCompra?.toFixed(2) || '0.00'}</td>
-                                                <td className="px-4 py-3 text-right flex justify-end gap-2">
-                                                    <button
-                                                        onClick={() => handleEdit(product)}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                        title="Editar"
-                                                    >
-                                                        <span className="material-symbols-outlined text-lg">edit</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(product.id!)}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                        title="Excluir"
-                                                    >
-                                                        <span className="material-symbols-outlined text-lg">delete</span>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {filteredProducts.length === 0 && (
-                                            <tr>
-                                                <td colSpan={5} className="px-4 py-8 text-center text-gray-400 italic">
-                                                    Nenhum produto encontrado.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    <div className="overflow-x-auto rounded-lg border border-border-light">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead className="bg-gray-50 text-text-secondary text-sm font-medium">
+                                                <tr>
+                                                    <th className="p-3">ID</th>
+                                                    <th className="p-3">Nome</th>
+                                                    <th className="p-3 text-center">Unid. (Estoque)</th>
+                                                    <th className="p-3">Peso (Unit.)</th>
+                                                    <th className="p-3">Vlr. Compra</th>
+                                                    <th className="p-3 text-right">Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border-light text-sm text-text-primary">
+                                                {filteredProducts.map((product) => {
+                                                    // Calculation Logic
+                                                    let unitsDisplay = product.quantidadeAtual?.toFixed(2);
+                                                    let weightDisplay = "-";
+
+                                                    if (product.pesoPorUnidade && product.pesoPorUnidade > 0) {
+                                                        // Calculate number of packs/units
+                                                        const packs = (product.quantidadeAtual || 0) / product.pesoPorUnidade;
+                                                        // User requested integer-like display for packs (no trailing zeros)
+                                                        unitsDisplay = packs.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+                                                        weightDisplay = `${product.pesoPorUnidade} ${product.unidadeMedida}`;
+                                                    } else {
+                                                        unitsDisplay = (product.quantidadeAtual || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+                                                    }
+
+                                                    return (
+                                                        <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                                                            <td className="p-3 text-text-secondary">#{product.id}</td>
+                                                            <td className="p-3 font-medium">{product.nome}</td>
+                                                            <td className="p-3 text-center">{unitsDisplay}</td>
+                                                            <td className="p-3 text-gray-600">{weightDisplay}</td>
+                                                            <td className="p-3">R$ {formatCurrency(product.precoCompra)}</td>
+                                                            <td className="p-3 text-right space-x-2">
+                                                                <button
+                                                                    onClick={() => handleEdit(product)}
+                                                                    className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition-colors"
+                                                                    title="Editar"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[20px]">edit</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => product.id && handleDelete(product.id)}
+                                                                    className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition-colors"
+                                                                    title="Excluir"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[20px]">delete</span>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                                {filteredProducts.length === 0 && (
+                                                    <tr>
+                                                        <td colSpan={6} className="p-8 text-center text-text-secondary">
+                                                            Nenhum produto encontrado.
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

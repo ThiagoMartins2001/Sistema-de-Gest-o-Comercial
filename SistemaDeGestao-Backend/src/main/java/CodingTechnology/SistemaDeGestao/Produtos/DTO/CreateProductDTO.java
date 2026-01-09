@@ -13,4 +13,5 @@ public class CreateProductDTO {
     private Double quantidadeAtual;
     private Double precoCompra;
     private Double precoVenda;
+    private Double pesoPorUnidade;
 }

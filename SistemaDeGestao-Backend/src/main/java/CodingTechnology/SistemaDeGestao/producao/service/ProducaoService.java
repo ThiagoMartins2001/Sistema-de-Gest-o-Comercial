@@ -37,23 +37,19 @@ public class ProducaoService {
 
         producao.setReceita(receita);
 
-        // Calcular custos
+        producao.setReceita(receita);
+
         calcularCustosELucro(producao, receita);
 
-        // Descontar estoque baseado em lotes
         descontarEstoquePorLotes(receita, producao.getQuantidadeLotes());
 
-        // Processar Resultados da Produção (Entrada de Estoque)
         if (producao.getResultados() != null) {
             for (ProducaoResultado resultado : producao.getResultados()) {
                 resultado.setProducao(producao); // Vínculo bidirecional
 
                 if (resultado.getProduto() != null && resultado.getProduto().getId() != null) {
-                    // Atualizar estoque do produto final
                     productService.adicionarEstoque(resultado.getProduto().getId(), resultado.getQuantidade());
 
-                    // Carregar dados completos do produto para o resultado (opcional, mas bom para
-                    // consistência)
                     var prod = productService.getProductById(resultado.getProduto().getId()).orElse(null);
                     if (prod != null)
                         resultado.setProduto(prod);
@@ -70,7 +66,6 @@ public class ProducaoService {
         double custoPorLote = 0.0;
 
         for (IngredienteDaReceita ingrediente : receita.getIngredientes()) {
-            // Custo = QtdNecessaria (convertida para unidade de compra) * PrecoCompra
             var produto = productRepository.findById(ingrediente.getProduto().getId()).orElse(null);
             if (produto != null && produto.getPrecoCompra() != null) {
                 double quantidadeConvertida = ingrediente.getUnidadeMedida()
@@ -82,19 +77,7 @@ public class ProducaoService {
         double custoTotal = custoPorLote * producao.getQuantidadeLotes();
         producao.setCustoTotal(custoTotal);
 
-        // Lucro Estimado = (Valor Venda Total Estimado) - Custo Total
-        // Valor Venda Total Estimado = (Qtd Produzida Real * Preço unitário médio
-        // baseados nos produtos da receita?)
-        // Na verdade, o lucro real depende do preço de venda do produto final, que pode
-        // não ser a Receita em si, mas os produtos gerados.
-        // Como a Receita gera um "produto" conceitual para venda (ex: 20 coxinhas),
-        // vamos assumir que o lucro é calculado depois na venda.
-        // Mas o pedido é "Dashboard para calcular lucros".
-        // Vamos deixar o lucroEstimado como null por enquanto se não tivermos preço de
-        // venda na Receita.
-        // Se a receita tiver um preço de venda sugerido (ainda não tem), usariamos.
-        // Vamos apenas salvar o Custo Total corretamente por enquanto.
-        producao.setLucroEstimado(0.0); // Placeholder until Recipe has selling price
+        producao.setLucroEstimado(0.0);
     }
 
     // Calcula as quantidades necessárias e desconta do estoque
@@ -115,10 +98,50 @@ public class ProducaoService {
                             "Produto não encontrado: " + ingrediente.getProduto().getNome()));
 
             double quantidadeNecessariaReceita = ingrediente.getQuantidadeNecessaria() * quantidadeLotes;
+            double quantidadeNecessariaEstoque;
 
-            // Converter a quantidade da receita para a unidade do produto no estoque
-            double quantidadeNecessariaEstoque = ingrediente.getUnidadeMedida()
-                    .converterPara(produto.getUnidadeMedida(), quantidadeNecessariaReceita);
+            // Lógica de Conversão Avançada
+            try {
+                boolean conversionStandardPossible = true;
+
+                if (ingrediente.getUnidadeMedida() != produto.getUnidadeMedida()) {
+                    if (ingrediente
+                            .getUnidadeMedida() == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.UN
+                            || produto
+                                    .getUnidadeMedida() == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.UN) {
+                        conversionStandardPossible = false;
+                    }
+                }
+
+                if (conversionStandardPossible) {
+                    quantidadeNecessariaEstoque = ingrediente.getUnidadeMedida()
+                            .converterPara(produto.getUnidadeMedida(), quantidadeNecessariaReceita);
+                } else {
+                    Double pesoUnitario = produto.getPesoPorUnidade();
+
+                    if (pesoUnitario == null || pesoUnitario <= 0) {
+                        quantidadeNecessariaEstoque = ingrediente.getUnidadeMedida()
+                                .converterPara(produto.getUnidadeMedida(), quantidadeNecessariaReceita);
+                    } else {
+                        if (ingrediente
+                                .getUnidadeMedida() == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.UN) {
+                            quantidadeNecessariaEstoque = quantidadeNecessariaReceita * pesoUnitario;
+                        } else if (produto
+                                .getUnidadeMedida() == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.UN) {
+                            double qtdEmKgOuL = converterParaBase(ingrediente.getUnidadeMedida(),
+                                    quantidadeNecessariaReceita);
+                            quantidadeNecessariaEstoque = qtdEmKgOuL / pesoUnitario;
+                        } else {
+                            quantidadeNecessariaEstoque = quantidadeNecessariaReceita;
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                // Em caso de erro na conversão manual, tenta a padrão
+                quantidadeNecessariaEstoque = ingrediente.getUnidadeMedida()
+                        .converterPara(produto.getUnidadeMedida(), quantidadeNecessariaReceita);
+            }
 
             quantidadesNecessarias.put(ingrediente.getProduto().getId(), quantidadeNecessariaEstoque);
 
@@ -135,6 +158,21 @@ public class ProducaoService {
 
         for (Map.Entry<Long, Double> entry : quantidadesNecessarias.entrySet()) {
             productService.descontarEstoque(entry.getKey(), entry.getValue());
+        }
+    }
+
+    // Helper simples para normalizar para KG ou L
+    private double converterParaBase(CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida origem,
+            double valor) {
+        switch (origem) {
+            case G:
+                return valor / 1000;
+            case MG:
+                return valor / 1000000;
+            case ML:
+                return valor / 1000;
+            default:
+                return valor; // Assumindo KG, L ou UN
         }
     }
 

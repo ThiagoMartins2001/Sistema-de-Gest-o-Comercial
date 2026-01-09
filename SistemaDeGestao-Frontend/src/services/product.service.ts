@@ -8,6 +8,7 @@ export interface Product {
     quantidadeAtual?: number;
     precoCompra: number;
     precoVenda: number;
+    pesoPorUnidade?: number;
 }
 
 export const productService = {

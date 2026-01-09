@@ -24,4 +24,7 @@ public class Product {
     private Double quantidadeAtual;
     private Double precoCompra;
     private Double precoVenda;
+
+    @Column(name = "peso_por_unidade")
+    private Double pesoPorUnidade; // Peso ou volume de cada unidade/embalagem (ex: 1.0 para 1kg)
 }

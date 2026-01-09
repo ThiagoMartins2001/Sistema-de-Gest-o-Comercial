@@ -105,6 +105,7 @@ public class ProductService {
         existingProduct.setUnidadeMedida(updatedProduct.getUnidadeMedida());
         existingProduct.setPrecoCompra(updatedProduct.getPrecoCompra());
         existingProduct.setPrecoVenda(updatedProduct.getPrecoVenda());
+        existingProduct.setPesoPorUnidade(updatedProduct.getPesoPorUnidade());
 
         // Se a quantidade atual for informada, atualiza. Senão mantém.
         if (updatedProduct.getQuantidadeAtual() != null) {

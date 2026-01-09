@@ -5,6 +5,7 @@ export interface IngredienteDaReceita {
     id?: number;
     produto: Product;
     quantidadeNecessaria: number;
+    unidadeMedida: string;
     observacoes?: string;
 }
 
@@ -28,11 +29,13 @@ export interface ItemCalculoDTO {
 export interface CalculoCustoDTO {
     ingredientes: ItemCalculoDTO[];
     margemLucro?: number; // New field
+    quantidadePartes?: number;
 }
 
 export interface ResultadoCalculoDTO {
     custoTotal: number;
     precoSugerido?: number; // New field
+    precoPorParte?: number;
 }
 
 export const recipeService = {
@@ -49,5 +52,14 @@ export const recipeService = {
     async calculateCost(dto: CalculoCustoDTO): Promise<ResultadoCalculoDTO> {
         const response = await api.post<ResultadoCalculoDTO>('/receitas/calcular-custo', dto);
         return response.data;
+    },
+
+    async update(id: number, receita: Receita): Promise<Receita> {
+        const response = await api.put<Receita>(`/receitas/atualizar/${id}`, receita);
+        return response.data;
+    },
+
+    async delete(id: number): Promise<void> {
+        await api.delete(`/receitas/excluir/${id}`);
     }
 };

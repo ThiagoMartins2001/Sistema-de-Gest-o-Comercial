@@ -8,4 +8,5 @@ import lombok.Data;
 public class ResultadoCalculoDTO {
     private Double custoTotal;
     private Double precoSugerido;
+    private Double precoPorParte;
 }

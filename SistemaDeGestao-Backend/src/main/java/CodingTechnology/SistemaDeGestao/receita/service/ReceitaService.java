@@ -74,6 +74,7 @@ public class ReceitaService {
         receitaExistente.setDescricao(receitaAtualizada.getDescricao());
         receitaExistente.setQuantidadePadraoProduzida(receitaAtualizada.getQuantidadePadraoProduzida());
         receitaExistente.setPrecoVenda(receitaAtualizada.getPrecoVenda());
+        receitaExistente.setMargemLucro(receitaAtualizada.getMargemLucro());
 
         ingredienteDaReceitaRepository.deleteByReceitaId(id);
         receitaExistente.getIngredientes().clear();
@@ -174,21 +175,57 @@ public class ReceitaService {
         if (dto.getIngredientes() != null) {
             for (ItemCalculoDTO item : dto.getIngredientes()) {
                 if (item.getProdutoId() == null || item.getQuantidade() == null || item.getUnidadeMedida() == null) {
-                    continue; // Pular itens incompletos
+                    continue;
                 }
 
                 Product produto = productRepository.findById(item.getProdutoId()).orElse(null);
 
                 if (produto != null && produto.getPrecoCompra() != null) {
-                    // Converter a quantidade informada para a unidade de medida do produto em
-                    // estoque
                     try {
-                        double quantidadeConvertida = item.getUnidadeMedida()
-                                .converterPara(produto.getUnidadeMedida(), item.getQuantidade());
-                        custoTotal += quantidadeConvertida * produto.getPrecoCompra();
+                        double quantidadeConvertida = 0.0;
+                        boolean conversionStandardPossible = true;
+
+                        if (item.getUnidadeMedida() != produto.getUnidadeMedida()) {
+                            if (item.getUnidadeMedida() == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.UN
+                                    || produto
+                                            .getUnidadeMedida() == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.UN) {
+                                conversionStandardPossible = false;
+                            }
+                        }
+
+                        if (conversionStandardPossible) {
+                            quantidadeConvertida = item.getUnidadeMedida()
+                                    .converterPara(produto.getUnidadeMedida(), item.getQuantidade());
+                        } else {
+                            Double pesoUnitario = produto.getPesoPorUnidade();
+                            if (pesoUnitario != null && pesoUnitario > 0) {
+                                if (item.getUnidadeMedida() == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.UN) {
+                                    quantidadeConvertida = item.getQuantidade() * pesoUnitario;
+                                } else if (produto
+                                        .getUnidadeMedida() == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.UN) {
+                                    double qtdBase = item.getQuantidade();
+                                    if (this.isWeight(item.getUnidadeMedida()))
+                                        qtdBase = convertToKG(item.getUnidadeMedida(), item.getQuantidade());
+                                    else if (this.isVolume(item.getUnidadeMedida()))
+                                        qtdBase = convertToL(item.getUnidadeMedida(), item.getQuantidade());
+
+                                    quantidadeConvertida = qtdBase / pesoUnitario;
+                                } else {
+                                    quantidadeConvertida = item.getQuantidade();
+                                }
+                            } else {
+                                quantidadeConvertida = item.getUnidadeMedida()
+                                        .converterPara(produto.getUnidadeMedida(), item.getQuantidade());
+                            }
+                        }
+
+                        double precoUnitarioReal = produto.getPrecoCompra();
+                        if (produto.getPesoPorUnidade() != null && produto.getPesoPorUnidade() > 0) {
+                            precoUnitarioReal = produto.getPrecoCompra() / produto.getPesoPorUnidade();
+                        }
+
+                        custoTotal += quantidadeConvertida * precoUnitarioReal;
                     } catch (Exception e) {
-                        // Se falhar a conversão (ex: unidades incompatíveis), podemos logar ou ignorar
-                        // Por segurança, ignora o item no cálculo
                         System.err.println("Erro ao converter unidade para cálculo de custo: " + e.getMessage());
                     }
                 }
@@ -200,6 +237,37 @@ public class ReceitaService {
             precoSugerido = custoTotal * (1 + (dto.getMargemLucro() / 100));
         }
 
-        return new ResultadoCalculoDTO(custoTotal, precoSugerido);
+        Double precoPorParte = 0.0;
+        Integer partes = dto.getQuantidadePartes();
+        if (partes != null && partes > 0 && precoSugerido > 0) {
+            precoPorParte = precoSugerido / partes;
+        }
+
+        return new ResultadoCalculoDTO(custoTotal, precoSugerido, precoPorParte);
+    }
+
+    private boolean isWeight(CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida u) {
+        return u == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.KG ||
+                u == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.G ||
+                u == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.MG;
+    }
+
+    private boolean isVolume(CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida u) {
+        return u == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.L ||
+                u == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.ML;
+    }
+
+    private double convertToKG(CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida u, double val) {
+        if (u == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.G)
+            return val / 1000;
+        if (u == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.MG)
+            return val / 1000000;
+        return val;
+    }
+
+    private double convertToL(CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida u, double val) {
+        if (u == CodingTechnology.SistemaDeGestao.Produtos.model.enums.UnidadeMedida.ML)
+            return val / 1000;
+        return val;
     }
 }
