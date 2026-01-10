@@ -34,6 +34,15 @@ public class Receita {
     @Column(name = "margem_lucro")
     private Double margemLucro; // Porcentagem (ex: 50.0 para 50%)
 
+    @Column(name = "em_reparticao")
+    private Boolean emReparticao;
+
+    @Column(name = "quantidade_partes")
+    private Integer quantidadePartes;
+
+    @Column(name = "preco_por_parte")
+    private Double precoPorParte;
+
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 

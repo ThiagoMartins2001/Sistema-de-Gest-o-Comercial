@@ -15,7 +15,10 @@ export interface Receita {
     descricao?: string;
     quantidadePadraoProduzida: number;
     precoVenda?: number;
-    margemLucro?: number; // New field
+    margemLucro?: number;
+    emReparticao?: boolean;
+    quantidadePartes?: number;
+    precoPorParte?: number;
     ingredientes: IngredienteDaReceita[];
 }
 

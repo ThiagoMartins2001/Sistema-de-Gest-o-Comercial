@@ -75,6 +75,9 @@ public class ReceitaService {
         receitaExistente.setQuantidadePadraoProduzida(receitaAtualizada.getQuantidadePadraoProduzida());
         receitaExistente.setPrecoVenda(receitaAtualizada.getPrecoVenda());
         receitaExistente.setMargemLucro(receitaAtualizada.getMargemLucro());
+        receitaExistente.setEmReparticao(receitaAtualizada.getEmReparticao());
+        receitaExistente.setQuantidadePartes(receitaAtualizada.getQuantidadePartes());
+        receitaExistente.setPrecoPorParte(receitaAtualizada.getPrecoPorParte());
 
         ingredienteDaReceitaRepository.deleteByReceitaId(id);
         receitaExistente.getIngredientes().clear();

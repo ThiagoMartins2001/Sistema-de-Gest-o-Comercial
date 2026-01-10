@@ -150,6 +150,7 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
         setSuggestedPrice(0);
         setIsPartitioned(false);
         setPartitionCount(1);
+        setPartitionPrice(0);
     };
 
     const handleAddIngredient = () => {
@@ -175,6 +176,9 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
         setQuantidadePadrao(recipe.quantidadePadraoProduzida);
         setPrecoVenda(recipe.precoVenda || 0);
         setMargemLucro(recipe.margemLucro || 50);
+        setIsPartitioned(recipe.emReparticao || false);
+        setPartitionCount(recipe.quantidadePartes || 1);
+        setPartitionPrice(recipe.precoPorParte || 0);
 
         // Map ingredients
         if (recipe.ingredientes) {
@@ -214,14 +218,17 @@ export default function RecipeModal({ isOpen, onClose }: RecipeModalProps) {
                 nome,
                 descricao,
                 quantidadePadraoProduzida: quantidadePadrao,
-                precoVenda,
-                margemLucro,
-                ingredientes: ingredients.map(ing => ({
-                    produto: { id: Number(ing.productId) } as Product,
-                    quantidadeNecessaria: Number(ing.quantity),
+                precoVenda: suggestedPrice, // Use auto-calculated price
+                margemLucro: margemLucro,
+                emReparticao: isPartitioned,
+                quantidadePartes: partitionCount,
+                precoPorParte: partitionPrice,
+                ingredientes: ingredients.map((ing) => ({
+                    produto: { id: parseInt(ing.productId) } as any,
+                    quantidadeNecessaria: ing.quantity,
                     unidadeMedida: ing.unit,
-                    observacoes: ing.observation
-                }))
+                    observacoes: ing.observation,
+                })),
             };
 
             if (editingId) {
